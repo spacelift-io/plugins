@@ -1,0 +1,170 @@
+version: 1.0.0
+description: A plugin for integrating with Wiz security platform.
+author: Spacelift Team
+name_prefix: WIZ Integration
+parameters:
+  - name: Wiz API Key
+    description: Wiz API key for authentication
+    sensitive: true
+    required: true
+contexts:
+  - name_prefix: wiz
+    description: Wiz plugin context
+    env:
+      - key: WIZ_API_KEY
+        value_from_parameter: wiz_api_key
+        sensitive: true
+    mounted_files:
+      - path: wiz_config.yaml
+        content: test
+        sensitive: false
+      - path: /mnt/workspace/plugins/wiz/requirements.txt
+        content: requests
+        sensitive: false
+      - path: /mnt/workspace/plugins/wiz/plugin.py
+        content: |-
+          from spacepy import SpacepyPlugin, Parameter, Variable, Context, Webhook, Policy, MountedFile, Binary
+          import os
+          
+          
+          class WizPlugin(SpacepyPlugin):
+              """
+              A plugin for integrating with Wiz security platform.
+              """
+          
+              # Plugin metadata
+              __plugin_name__ = "wiz"
+              __version__ = "1.0.0"
+              __author__ = "Spacelift Team"
+          
+              __binaries__ = [
+                  Binary(
+                      name="wiz-cli",
+                      download_urls={
+                          "amd64": "https://wiz.io/downloads/wiz-cli-linux-amd64.tar.gz",
+                          "arm64": "https://wiz.io/downloads/wiz-cli-linux-arm64.tar.gz"
+                      }
+                  )
+              ]
+          
+              # Plugin parameters
+              __parameters__ = [
+                  Parameter(
+                      name="wiz_api_key",
+                      description="Wiz API key for authentication",
+                      required=True,
+                      sensitive=True
+                  )
+              ]
+          
+              # Plugin contexts
+              __contexts__ = [
+                  Context(
+                      name="wiz",
+                      description="Wiz plugin context",
+                      labels={
+                          "environment": "production"
+                      },
+                      env=[
+                          Variable(
+                              key="WIZ_API_KEY",
+                              value_from_parameter="wiz_api_key",
+                              sensitive=True
+                          ),
+                      ],
+                      hooks={
+                          "after_plan": [
+                              "echo 'Running Wiz plugin after plan'" # just an example
+                          ],
+                      },
+                      mounted_files=[
+                          MountedFile(
+                              path="wiz_config.yaml",
+                              content="test",
+                              sensitive=False,
+                          )
+                      ]
+                  )
+              ]
+          
+              __webhooks__ = [
+                  Webhook(
+                      name="wiz_webhook",
+                      endpoint="https://example.com/wiz-webhook",
+                      secrets=[
+                          Variable(
+                              key="WIZ_API_KEY",
+                              value_from_parameter="wiz_api_key",
+                          )
+                      ]
+                  )
+              ]
+          
+              __policies__ = [
+                  Policy(
+                      name="wiz_policy",
+                      type="notification",
+                      body="""
+          package spacelift
+          
+          webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
+            input.run_updated.run.type == "TRACKED"
+            input.run_updated.run.marked_unsafe == true
+          }
+                      """,
+                      labels={
+                          "policy_type": "security"
+                      }
+                  )
+              ]
+          
+              def __init__(self):
+                  super().__init__()
+          
+              def after_plan(self):
+                  self.logger.info("Checking IAC Code")
+          
+                  # Here we would typically run a command to validate the IAC code
+                  # For demonstration, we will just echo the API key
+                  self.run_cli("echo", os.getenv("WIZ_API_KEY"))
+          
+                  # Maybe you would upload the results of the check to a new spacelift context?
+                  # Pseudo-Code Example
+                  # upload = self.query_api("mutation UploadResults($context: String!, $results: String!) .....")
+                  # results = upload["results"]["bindings"]
+                  # if not results:
+                  #     self.logger.error("No results found in the upload response")
+                  #     return
+          
+                  self.logger.debug("debug test")
+                  self.logger.warning("warning test")
+                  self.logger.error("error test")
+        sensitive: false
+    hooks:
+      after_plan:
+        - cd /mnt/workspace/plugins/wiz && python -m spacepy runner --plugin-file /mnt/workspace/plugins/wiz/plugin.py after_plan
+      before_init:
+        - mkdir -p /mnt/workspace/plugins/wiz
+        - cd /mnt/workspace/plugins/wiz && python -m venv ./venv && source venv/bin/activate && pip install -r requirements.txt
+        - mkdir -p /mnt/workspace/plugins/plugin_binaries && cd /mnt/workspace/plugins/plugin_binaries && ([[ "$(echo "$(arch)")" == "x86_64" ]] && curl https://wiz.io/downloads/wiz-cli-linux-amd64.tar.gz -o /mnt/workspace/plugins/plugin_binaries/wiz-cli -L && chmod +x /mnt/workspace/plugins/plugin_binaries/wiz-cli || curl https://wiz.io/downloads/wiz-cli-linux-arm64.tar.gz -o /mnt/workspace/plugins/plugin_binaries/wiz-cli -L && chmod +x /mnt/workspace/plugins/plugin_binaries/wiz-cli)
+    labels:
+      environment: production
+webhooks:
+  - name_prefix: wiz_webhook
+    endpoint: https://example.com/wiz-webhook
+    secrets:
+      - key: WIZ_API_KEY
+        value_from_parameter: wiz_api_key
+        sensitive: false
+policies:
+  - name_prefix: wiz_policy
+    type: notification
+    body: |-
+      package spacelift
+      
+      webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
+        input.run_updated.run.type == "TRACKED"
+        input.run_updated.run.marked_unsafe == true
+      }
+    labels:
+      policy_type: security
