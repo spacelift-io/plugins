@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "Context": {
+      "description": "A class to represent a context for a plugin.\n\nAttributes:\n    name_prefix (str): The name of the context, will be appended with a unique ID.\n    description (str): A description of the context.\n    labels (dict): Labels associated with the context.\n    env (list): List of variables associated with the context.\n    hooks (dict): Hooks associated with the context.",
+      "properties": {
+        "name_prefix": {
+          "title": "Name Prefix",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "env": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Variable"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Env"
+        },
+        "mounted_files": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MountedFile"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mounted Files"
+        },
+        "hooks": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "propertyNames": {
+                "enum": [
+                  "before_init",
+                  "after_init",
+                  "before_plan",
+                  "after_plan",
+                  "before_apply",
+                  "after_apply",
+                  "before_perform",
+                  "after_perform",
+                  "before_destroy",
+                  "after_destroy",
+                  "after_run"
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hooks"
+        },
+        "labels": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Labels"
+        }
+      },
+      "required": [
+        "name_prefix",
+        "description"
+      ],
+      "title": "Context",
+      "type": "object"
+    },
+    "MountedFile": {
+      "description": "A class to represent a mounted file.\n\nAttributes:\n    path (str): The path of the mounted file.\n    content (str): The content of the mounted file.\n    sensitive (bool): Whether the content of the file is sensitive.",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "sensitive": {
+          "default": false,
+          "title": "Sensitive",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path",
+        "content"
+      ],
+      "title": "MountedFile",
+      "type": "object"
+    },
+    "Parameter": {
+      "description": "A class to represent a parameter with a name and value.\n\nAttributes:\n    name (str): The name of the parameter.\n    description (str): A description of the parameter.\n    sensitive (bool): Whether the parameter contains sensitive information.\n    required (bool): Whether the parameter is required.\n    default (Optional[str]): The default value of the parameter, if any. (required if sensitive is False)",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "sensitive": {
+          "default": false,
+          "title": "Sensitive",
+          "type": "boolean"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        }
+      },
+      "required": [
+        "name",
+        "description"
+      ],
+      "title": "Parameter",
+      "type": "object"
+    },
+    "Policy": {
+      "description": "A class to represent a policy configuration.\n\nAttributes:\n    name_prefix (str): The name of the policy, will be appended with a unique ID.\n    type (str): The type of the policy (e.g., \"terraform\", \"kubernetes\").\n    body (str): The body of the policy, typically a configuration or script.\n    labels (Optional[dict[str, str]]): Labels associated with the policy.",
+      "properties": {
+        "name_prefix": {
+          "title": "Name Prefix",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "body": {
+          "title": "Body",
+          "type": "string"
+        },
+        "labels": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Labels"
+        }
+      },
+      "required": [
+        "name_prefix",
+        "type",
+        "body"
+      ],
+      "title": "Policy",
+      "type": "object"
+    },
+    "Variable": {
+      "description": "A class to represent an environment variable.\n\nAttributes:\n    key (str): The key of the environment variable.\n    value (Optional[str]): The value of the environment variable, if set.\n    value_from_parameter (Optional[str]): The name of the plugin variable to use as the value.\n    sensitive (bool): Whether the environment variable is sensitive.",
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_from_parameter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value From Parameter"
+        },
+        "sensitive": {
+          "default": false,
+          "title": "Sensitive",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "title": "Variable",
+      "type": "object"
+    },
+    "Webhook": {
+      "description": "A class to represent a webhook configuration.\n\nAttributes:\n    name_prefix (str): The name of the webhook, will be appended with a unique ID.\n    endpoint (str): The URL endpoint for the webhook.\n    labels (Optional[dict]): Labels associated with the webhook.\n    secrets (Optional[list[Variable]]): List of secrets associated with the webhook.",
+      "properties": {
+        "name_prefix": {
+          "title": "Name Prefix",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "labels": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Labels"
+        },
+        "secrets": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Variable"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Secrets"
+        }
+      },
+      "required": [
+        "name_prefix",
+        "endpoint"
+      ],
+      "title": "Webhook",
+      "type": "object"
+    }
+  },
+  "description": "A class to represent the manifest of a Spacelift plugin.\n\nAttributes:\n    name_prefix (str): The name of the plugin, will be appended with a unique ID.\n    description (str): A description of the plugin.\n    author (str): The author of the plugin.\n    parameters (list[Parameter]): List of parameters for the plugin.\n    contexts (list[Context]): List of contexts for the plugin.\n    webhooks (list[Webhook]): List of webhooks for the plugin.\n    policies (list[Policy]): List of policies for the plugin.",
+  "properties": {
+    "name_prefix": {
+      "title": "Name Prefix",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "author": {
+      "title": "Author",
+      "type": "string"
+    },
+    "parameters": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Parameter"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parameters"
+    },
+    "contexts": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Context"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Contexts"
+    },
+    "webhooks": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Webhook"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Webhooks"
+    },
+    "policies": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Policy"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Policies"
+    }
+  },
+  "required": [
+    "name_prefix",
+    "version",
+    "description",
+    "author"
+  ],
+  "title": "PluginManifest",
+  "type": "object"
+}
