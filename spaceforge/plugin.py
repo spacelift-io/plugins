@@ -253,7 +253,7 @@ class SpaceforgePlugin(ABC):
 
         headers = {"Authorization": f"Bearer {self._api_token}"}
         body = {
-            "pluginName": self.__plugin_name__,
+            "plugin_name": self.__plugin_name__,
         }
 
         # First we get the signed url for uploading
@@ -273,21 +273,22 @@ class SpaceforgePlugin(ABC):
             raw_response = response.read().decode("utf-8")
             self.logger.debug(raw_response)
             resp: Dict[str, Any] = json.loads(raw_response)
-            if "url" not in resp:
+            if "url" not in resp or "headers" not in resp:
                 self.logger.error(
-                    "Markdown signed url response does not contain 'url' key."
+                    "Markdown signed url response does not contain 'url' or 'headers' key."
                 )
                 return
+
             signed_url = resp["url"]
+            headers = resp["headers"]
+            headers["Content-Type"] = "text/markdown"
+            headers["Content-Length"] = str(len(markdown))
 
         # Now we upload the markdown content to the signed URL
         req = urllib.request.Request(
             signed_url,
             data=markdown.encode("utf-8"),
-            headers={
-                "Content-Type": "text/markdown",
-                "Content-Length": str(len(markdown)),
-            },
+            headers=headers,
             method="PUT",
         )
 
