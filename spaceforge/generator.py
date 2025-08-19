@@ -4,7 +4,7 @@ YAML generator for Spacelift plugins.
 
 import importlib.util
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 import yaml
 
@@ -81,7 +81,7 @@ class PluginGenerator:
             "/mnt/workspace/plugins/" + plugin_class.__plugin_name__.lower()
         )
 
-    def get_plugin_metadata(self) -> Dict[str, str]:
+    def get_plugin_metadata(self) -> Dict[str, Union[str, List[str]]]:
         """Extract metadata from the plugin class."""
         if self.plugin_class is None:
             raise ValueError("Plugin class not loaded. Call load_plugin() first.")
@@ -97,6 +97,7 @@ class PluginGenerator:
                 self.plugin_class.__name__.lower().replace("plugin", ""),
             ),
             "version": getattr(self.plugin_class, "__version__", "1.0.0"),
+            "labels": getattr(self.plugin_class, "__labels__", []),
             "description": doc
             or f"A Spacelift plugin built with {self.plugin_class.__name__}",
             "author": getattr(self.plugin_class, "__author__", "Unknown"),
@@ -292,10 +293,11 @@ class PluginGenerator:
         metadata = self.get_plugin_metadata()
 
         return PluginManifest(
-            name=metadata.get("name_prefix", "unknown"),
-            version=metadata.get("version", "1.0.0"),
-            description=metadata.get("description", ""),
-            author=metadata.get("author", "Unknown"),
+            name=str(metadata.get("name_prefix", "unknown")),
+            version=str(metadata.get("version", "1.0.0")),
+            description=str(metadata.get("description", "")),
+            author=str(metadata.get("author", "Unknown")),
+            labels=list(metadata.get("labels", [])),
             parameters=self.get_plugin_parameters(),
             contexts=self.get_plugin_contexts(),
             webhooks=self.get_plugin_webhooks(),

@@ -1,6 +1,5 @@
 import os
 import tempfile
-from typing import Optional
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
