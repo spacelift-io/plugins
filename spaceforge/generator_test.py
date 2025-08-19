@@ -474,7 +474,7 @@ class NotAPlugin:
         """Test YAML writing functionality."""
         generator = PluginGenerator(output_path=self.test_output_path)
         manifest = PluginManifest(
-            name_prefix="test",
+            name="test",
             version="1.0.0",
             description="Test",
             author="Test Author",
@@ -500,7 +500,7 @@ class NotAPlugin:
         """Test complete generate method."""
         generator = PluginGenerator()
         mock_manifest = PluginManifest(
-            name_prefix="test", version="1.0.0", description="Test", author="Test"
+            name="test", version="1.0.0", description="Test", author="Test"
         )
         mock_generate_manifest.return_value = mock_manifest
 

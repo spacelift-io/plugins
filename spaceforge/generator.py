@@ -265,7 +265,7 @@ class PluginGenerator:
         metadata = self.get_plugin_metadata()
 
         return PluginManifest(
-            name_prefix=metadata.get("name_prefix", "unknown"),
+            name=metadata.get("name_prefix", "unknown"),
             version=metadata.get("version", "1.0.0"),
             description=metadata.get("description", ""),
             author=metadata.get("author", "Unknown"),

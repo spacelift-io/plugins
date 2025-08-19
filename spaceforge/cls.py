@@ -180,7 +180,7 @@ class PluginManifest:
         policies (list[Policy]): List of policies for the plugin.
     """
 
-    name_prefix: str
+    name: str
     version: str
     description: str
     author: str
