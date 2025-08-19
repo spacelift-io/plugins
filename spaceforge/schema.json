@@ -287,8 +287,8 @@
   },
   "description": "A class to represent the manifest of a Spacelift plugin.\n\nAttributes:\n    name_prefix (str): The name of the plugin, will be appended with a unique ID.\n    description (str): A description of the plugin.\n    author (str): The author of the plugin.\n    parameters (list[Parameter]): List of parameters for the plugin.\n    contexts (list[Context]): List of contexts for the plugin.\n    webhooks (list[Webhook]): List of webhooks for the plugin.\n    policies (list[Policy]): List of policies for the plugin.",
   "properties": {
-    "name_prefix": {
-      "title": "Name Prefix",
+    "name": {
+      "title": "Name",
       "type": "string"
     },
     "version": {
@@ -361,7 +361,7 @@
     }
   },
   "required": [
-    "name_prefix",
+    "name",
     "version",
     "description",
     "author"
