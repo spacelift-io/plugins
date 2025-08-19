@@ -447,7 +447,7 @@ class NotAPlugin:
         # Should have spacepy runner hooks
         assert context.hooks is not None
         assert "after_plan" in context.hooks
-        runner_command = context.hooks["after_plan"][0]
+        runner_command = context.hooks["after_plan"][1]
         assert "python -m spaceforge runner" in runner_command
         assert "after_plan" in runner_command
 

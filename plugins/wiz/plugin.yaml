@@ -193,9 +193,10 @@ contexts:
   hooks:
     before_init:
     - mkdir -p /mnt/workspace/plugins/wiz
-    - mkdir -p /mnt/workspace/plugins/plugin_binaries && cd /mnt/workspace/plugins/plugin_binaries && ([[ "$(echo "$(arch)")" == "x86_64" ]] && curl https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64 -o /mnt/workspace/plugins/plugin_binaries/wizcli -L && chmod +x /mnt/workspace/plugins/plugin_binaries/wizcli || curl https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64 -o /mnt/workspace/plugins/plugin_binaries/wizcli -L && chmod +x /mnt/workspace/plugins/plugin_binaries/wizcli)
+    - mkdir -p /mnt/workspace/plugins/plugin_binaries && cd /mnt/workspace/plugins/plugin_binaries && ([[ "$(echo "$(arch)")" == "x86_64" ]] && curl https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64 -o /mnt/workspace/plugins/plugin_binaries/wizcli -L && chmod +x /mnt/workspace/plugins/plugin_binaries/wizcli || curl https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64 -o /mnt/workspace/plugins/plugin_binaries/wizcli -L && chmod +x /mnt/workspace/plugins/plugin_binaries/wizcli) && cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
     before_plan:
-    - cd /mnt/workspace/plugins/wiz && python -m spaceforge runner --plugin-file /mnt/workspace/plugins/wiz/plugin.py before_plan
+    - cd /mnt/workspace/plugins/wiz && python -m venv ./venv && source venv/bin/activate && pip install spaceforge
+    - cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file /mnt/workspace/plugins/wiz/plugin.py before_plan
 policies:
 - name_prefix: wiz_policy
   type: notification
