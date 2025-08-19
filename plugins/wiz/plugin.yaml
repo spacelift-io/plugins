@@ -2,6 +2,10 @@ name: wiz
 version: 1.0.0
 description: A plugin for integrating with Wiz security platform.
 author: Spacelift Team
+labels:
+- security
+- code scanning
+- vulnerability
 parameters:
 - name: Wiz Client ID
   description: The client ID for Wiz API authentication
@@ -39,6 +43,7 @@ contexts:
 
           # Plugin metadata
           __plugin_name__ = "wiz"
+          __labels__ = ["security", "code scanning", "vulnerability"]
           __version__ = "1.0.0"
           __author__ = "Spacelift Team"
 

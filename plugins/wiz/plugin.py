@@ -11,6 +11,7 @@ class WizPlugin(SpaceforgePlugin):
 
     # Plugin metadata
     __plugin_name__ = "wiz"
+    __labels__ = ["security", "code scanning", "vulnerability"]
     __version__ = "1.0.0"
     __author__ = "Spacelift Team"
 

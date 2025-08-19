@@ -9,7 +9,7 @@ import os
 import subprocess
 import urllib.request
 from abc import ABC
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class SpaceforgePlugin(ABC):

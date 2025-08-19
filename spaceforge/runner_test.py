@@ -1,7 +1,7 @@
 import os
 import sys
 import tempfile
-from typing import Any, Optional
+from typing import Optional
 from unittest.mock import Mock, patch
 
 import pytest

@@ -4,9 +4,9 @@ Main entry point for spaceforge module.
 
 import click
 
-from ._version import get_version
-from .generator import generate_command
-from .runner import runner_command
+from spaceforge._version import get_version
+from spaceforge.generator import generate_command
+from spaceforge.runner import runner_command
 
 
 @click.group()

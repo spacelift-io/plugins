@@ -3,7 +3,6 @@ Dynamic version detection from git tags.
 """
 
 import subprocess
-import sys
 from typing import Optional
 
 

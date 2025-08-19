@@ -176,6 +176,7 @@ class PluginManifest:
         name (str): The name of the plugin, will be appended with a unique ID.
         description (str): A description of the plugin.
         author (str): The author of the plugin.
+        labels (list[str]): List of labels for the plugin.
         parameters (list[Parameter]): List of parameters for the plugin.
         contexts (list[Context]): List of contexts for the plugin.
         webhooks (list[Webhook]): List of webhooks for the plugin.
@@ -186,6 +187,7 @@ class PluginManifest:
     version: str
     description: str
     author: str
+    labels: Optional[List[str]] = optional_field
     parameters: Optional[List[Parameter]] = optional_field
     contexts: Optional[List[Context]] = optional_field
     webhooks: Optional[List[Webhook]] = optional_field
