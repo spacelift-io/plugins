@@ -33,12 +33,11 @@ class SpaceforgePlugin(ABC):
     def __init__(self) -> None:
         self.logger = self._setup_logger()
 
-        self._api_token = os.environ.get("SPACELIFT_API_TOKEN", False)
-        self._spacelift_domain = os.environ.get(
-            "TF_VAR_spacelift_graphql_endpoint", False
-        )
-        self._api_enabled = self._api_token != False and self._spacelift_domain != False
+        self._api_token = os.environ.get("SPACELIFT_API_TOKEN")
+        self._spacelift_domain = os.environ.get("TF_VAR_spacelift_graphql_endpoint")
+        self._api_enabled = self._api_token and self._spacelift_domain
         self._workspace_root = os.environ.get("WORKSPACE_ROOT", os.getcwd())
+        self._spacelift_markdown_endpoint = None
 
         # This should be the last thing we do in the constructor
         # because we set api_enabled to false if the domain is set up incorrectly.
@@ -53,6 +52,11 @@ class SpaceforgePlugin(ABC):
                     "SPACELIFT_DOMAIN does not start with https://, api calls will fail."
                 )
                 self._api_enabled = False
+
+            if self._api_enabled:
+                self._spacelift_markdown_endpoint = self._spacelift_domain.replace(
+                    "/graphql", "/worker/plugin_logs_url"
+                )
 
     def _setup_logger(self) -> logging.Logger:
         """Set up logging for the plugin."""
@@ -175,7 +179,7 @@ class SpaceforgePlugin(ABC):
     ) -> Dict[str, Any]:
         if not self._api_enabled:
             self.logger.error(
-                'API is not enabled, please export "SPACELIFT_API_TOKEN" and "SPACELIFT_DOMAIN".'
+                'API is not enabled, please export "SPACELIFT_API_TOKEN" and "TF_VAR_spacelift_graphql_endpoint".'
             )
             exit(1)
 
@@ -192,7 +196,7 @@ class SpaceforgePlugin(ABC):
             data["variables"] = variables
 
         req = urllib.request.Request(
-            f"{self._spacelift_domain}/graphql",
+            self._spacelift_domain,
             json.dumps(data).encode("utf-8"),
             headers,
         )
@@ -226,8 +230,72 @@ class SpaceforgePlugin(ABC):
             return data
 
     def send_markdown(self, markdown: str) -> None:
-        # TODO
-        print(markdown)
+        """
+        Send a markdown message to the Spacelift run.
+
+        Args:
+            markdown: The markdown content to send
+        """
+        if os.environ.get("TF_VAR_spacelift_run_id", "local") == "local":
+            self.logger.info(
+                "Spacelift run is local. Not uploading markdown. Below is a preview of what would be sent"
+            )
+            self.logger.info(markdown)
+            return
+
+        if self._spacelift_markdown_endpoint is None:
+            self.logger.error(
+                'API is not enabled, please export "SPACELIFT_API_TOKEN" and "TF_VAR_spacelift_graphql_endpoint".'
+            )
+            exit(1)
+
+        headers = {"Authorization": f"Bearer {self._api_token}"}
+        body = {
+            "pluginName": self.__plugin_name__,
+        }
+
+        # First we get the signed url for uploading
+        req = urllib.request.Request(
+            self._spacelift_markdown_endpoint,
+            json.dumps(body).encode("utf-8"),
+            headers,
+        )
+
+        with urllib.request.urlopen(req) as response:
+            if response.status != 200:
+                self.logger.error(
+                    f"Error getting signed URL for markdown upload: {response.status}"
+                )
+                return
+
+            raw_response = response.read().decode("utf-8")
+            self.logger.debug(raw_response)
+            resp: Dict[str, Any] = json.loads(raw_response)
+            if "url" not in resp:
+                self.logger.error(
+                    "Markdown signed url response does not contain 'url' key."
+                )
+                return
+            signed_url = resp["url"]
+
+        # Now we upload the markdown content to the signed URL
+        req = urllib.request.Request(
+            signed_url,
+            data=markdown.encode("utf-8"),
+            headers={
+                "Content-Type": "text/markdown",
+                "Content-Length": str(len(markdown)),
+            },
+            method="PUT",
+        )
+
+        with urllib.request.urlopen(req) as put_response:
+            if put_response.status != 200:
+                self.logger.error(
+                    f"Error uploading markdown content: {put_response.status}"
+                )
+                return
+            self.logger.debug("Markdown content uploaded successfully.")
 
     # Hook methods - override these in your plugin
     def before_init(self) -> None:
