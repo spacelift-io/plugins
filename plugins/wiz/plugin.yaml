@@ -1,4 +1,4 @@
-name_prefix: wiz
+name: wiz
 version: 1.0.0
 description: A plugin for integrating with Wiz security platform.
 author: Spacelift Team
@@ -7,19 +7,21 @@ parameters:
   description: The client ID for Wiz API authentication
   sensitive: true
   required: true
+  id: wiz_client_id
 - name: Wiz Client Secret
   description: The client secret for Wiz API authentication
   sensitive: true
   required: true
+  id: wiz_client_secret
 contexts:
 - name_prefix: WIZ
   description: Wiz Plugin
   env:
   - key: WIZ_CLIENT_ID
-    value_from_parameter: Wiz Client ID
+    value_from_parameter: wiz_client_secret
     sensitive: true
   - key: WIZ_CLIENT_SECRET
-    value_from_parameter: Wiz Client Secret
+    value_from_parameter: wiz_client_secret
     sensitive: true
   mounted_files:
   - path: /mnt/workspace/plugins/wiz/plugin.py
@@ -54,12 +56,14 @@ contexts:
           __parameters__ = [
               Parameter(
                   name="Wiz Client ID",
+                  id="wiz_client_id",
                   description="The client ID for Wiz API authentication",
                   required=True,
                   sensitive=True
               ),
               Parameter(
                   name="Wiz Client Secret",
+                  id="wiz_client_secret",
                   description="The client secret for Wiz API authentication",
                   required=True,
                   sensitive=True
@@ -74,7 +78,7 @@ contexts:
                   env=[
                       Variable(
                           key="WIZ_CLIENT_ID",
-                          value_from_parameter="Wiz Client ID",
+                          value_from_parameter="Wiz Client Secret",
                           sensitive=True
                       ),
                       Variable(

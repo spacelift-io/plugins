@@ -118,7 +118,7 @@
       "type": "object"
     },
     "Parameter": {
-      "description": "A class to represent a parameter with a name and value.\n\nAttributes:\n    name (str): The name of the parameter.\n    description (str): A description of the parameter.\n    sensitive (bool): Whether the parameter contains sensitive information.\n    required (bool): Whether the parameter is required.\n    default (Optional[str]): The default value of the parameter, if any. (required if sensitive is False)",
+      "description": "A class to represent a parameter with a name and value.\n\nAttributes:\n    name (str): The name of the parameter.\n    description (str): A description of the parameter.\n    sensitive (bool): Whether the parameter contains sensitive information.\n    required (bool): Whether the parameter is required.\n    default (Optional[str]): The default value of the parameter, if any. (required if sensitive is False)\n    id (str): Unique identifier for the parameter.",
       "properties": {
         "name": {
           "title": "Name",
@@ -149,6 +149,10 @@
           ],
           "default": null,
           "title": "Default"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
         }
       },
       "required": [

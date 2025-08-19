@@ -208,6 +208,32 @@ class PluginGenerator:
         contexts[0].hooks.update(hooks)
         contexts[0].mounted_files.extend(mounted_files)
 
+        for context in contexts:
+            # Get the variables from the plugin and change the value_from_parameter to the ID of the parameter
+            # based on its name.
+            if context.env is None:
+                continue
+
+            for variable in context.env:
+                if variable.value_from_parameter:
+                    parameter_name = variable.value_from_parameter
+                    parameters = self.get_plugin_parameters()
+                    if parameters:
+                        parameter = next(
+                            (
+                                p
+                                for p in parameters
+                                if p.name == parameter_name or p.id == parameter_name
+                            ),
+                            None,
+                        )
+                        if parameter:
+                            variable.value_from_parameter = parameter.id
+                        else:
+                            raise ValueError(
+                                f"Parameter {parameter_name} not found for variable {variable.key}"
+                            )
+
         return contexts
 
     def generate_binary_install_command(self) -> str:
