@@ -33,16 +33,7 @@ jobs:
     
     - name: Run tests
       run: |
-        python -m pytest spaceforge/ -v
-    
-    - name: Run type checking
-      run: |
-        python -m mypy spaceforge/
-    
-    - name: Check code formatting
-      run: |
-        python -m black --check spaceforge/
-        python -m isort --check-only spaceforge/
+        ./test.sh
 
   build:
     needs: test

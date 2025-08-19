@@ -336,7 +336,7 @@ class TestSpaceforgePluginAPI:
                 plugin.query_api("query { test }")
 
         mock_error.assert_called_with(
-            'API is not enabled, please export "SPACELIFT_API_TOKEN" and "SPACELIFT_DOMAIN".'
+            'API is not enabled, please export "SPACELIFT_API_TOKEN" and "TF_VAR_spacelift_graphql_endpoint".'
         )
 
     def test_query_api_success(self) -> None:
@@ -360,7 +360,7 @@ class TestSpaceforgePluginAPI:
         # Verify request was made correctly
         mock_request.assert_called_once()
         call_args = mock_request.call_args[0]
-        assert call_args[0] == "https://test.spacelift.io/graphql"
+        assert call_args[0] == "https://test.spacelift.io"
 
         # Verify request data
         request_data = json.loads(call_args[1].decode("utf-8"))
@@ -582,8 +582,8 @@ class TestSpaceforgePluginEdgeCases:
     def test_plugin_api_url_construction(self) -> None:
         """Test API URL construction with various domain formats."""
         test_cases = [
-            ("https://example.spacelift.io", "https://example.spacelift.io/graphql"),
-            ("https://example.spacelift.io/", "https://example.spacelift.io/graphql"),
+            ("https://example.spacelift.io", "https://example.spacelift.io"),
+            ("https://example.spacelift.io/", "https://example.spacelift.io"),
         ]
 
         for domain, expected_url in test_cases:
