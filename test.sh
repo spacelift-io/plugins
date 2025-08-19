@@ -18,6 +18,9 @@ if [[ "$CI" == "true" ]]; then
     echo "Running isort checks..."
     python -m isort --check-only spaceforge/
 
+    echo "Running autoflake..."
+    python -m autoflake --check ./**/*.py
+
     echo "Ensuring shema is up to date..."
     cd spaceforge
     python cls.py > schema.json
@@ -29,6 +32,9 @@ else
 
     echo "Running isort..."
     python -m isort spaceforge/
+
+    echo "Running autoflake..."
+    python -m autoflake --in-place ./**/*.py
 
     echo "Updating schema"
     cd spaceforge

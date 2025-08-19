@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Dict, List
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -317,8 +318,15 @@ class NotAPlugin:
         """Test binary installation command generation."""
         generator = PluginGenerator()
         generator.plugin_class = PluginExample
+        generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
+        }
 
-        command = generator.generate_binary_install_command()
+        hooks: Dict[str, List[str]] = {"before_init": []}
+        generator._generate_binary_install_command(hooks)
+        command = hooks["before_init"][-1]
 
         assert "mkdir -p /mnt/workspace/plugins/plugin_binaries" in command
         assert "curl https://example.com/test-cli-amd64" in command
@@ -334,9 +342,16 @@ class NotAPlugin:
 
         generator = PluginGenerator()
         generator.plugin_class = NoBinariesPlugin
+        generator.plugin_working_directory = "/mnt/workspace/plugins/nobinaries"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/nobinaries && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/nobinaries/plugin.py",
+        }
 
-        command = generator.generate_binary_install_command()
-        assert command == ""
+        hooks: Dict[str, List[str]] = {"before_init": []}
+        generator._generate_binary_install_command(hooks)
+        # No binaries should mean no new commands added
+        assert len(hooks["before_init"]) == 0
 
     def test_generate_binary_install_command_missing_urls(self) -> None:
         """Test binary command generation with missing URLs."""
@@ -346,9 +361,15 @@ class NotAPlugin:
 
         generator = PluginGenerator()
         generator.plugin_class = InvalidBinaryPlugin
+        generator.plugin_working_directory = "/mnt/workspace/plugins/invalidbinary"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/invalidbinary && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/invalidbinary/plugin.py",
+        }
 
+        hooks: Dict[str, List[str]] = {"before_init": []}
         with pytest.raises(ValueError, match="must have at least one download URL"):
-            generator.generate_binary_install_command()
+            generator._generate_binary_install_command(hooks)
 
     def test_get_plugin_policies(self) -> None:
         """Test policy extraction."""
@@ -388,6 +409,10 @@ class NotAPlugin:
         generator = PluginGenerator(self.test_plugin_path)
         generator.plugin_class = PluginExample
         generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
+        }
 
         contexts = generator.get_plugin_contexts()
 
@@ -425,6 +450,10 @@ class NotAPlugin:
         generator = PluginGenerator(self.test_plugin_path)
         generator.plugin_class = PluginExample
         generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
+        }
 
         with patch.object(
             generator, "get_available_hooks", return_value=["after_plan"]
@@ -453,9 +482,14 @@ class NotAPlugin:
     def test_generate_manifest(self) -> None:
         """Test complete manifest generation."""
         generator = PluginGenerator(self.test_plugin_path)
+        generator.plugin_class = PluginExample
+        generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
+        }
 
         with patch.object(generator, "load_plugin"):
-            generator.plugin_class = PluginExample
             manifest = generator.generate_manifest()
 
         assert isinstance(manifest, PluginManifest)
@@ -605,8 +639,15 @@ class TestPluginGeneratorEdgeCases:
 
         generator = PluginGenerator()
         generator.plugin_class = SingleArchPlugin
+        generator.plugin_working_directory = "/mnt/workspace/plugins/singlearch"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/singlearch && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/singlearch/plugin.py",
+        }
 
-        command = generator.generate_binary_install_command()
+        hooks: Dict[str, List[str]] = {"before_init": []}
+        generator._generate_binary_install_command(hooks)
+        command = hooks["before_init"][-1]
 
         assert "https://example.com/binary-amd64" in command
         assert "arm64 binary not available" in command
@@ -637,6 +678,10 @@ class TestPluginGeneratorEdgeCases:
         generator = PluginGenerator("/fake/path")
         generator.plugin_class = ExistingHooksPlugin
         generator.plugin_working_directory = "/mnt/workspace/plugins/existing_hooks"
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/existing_hooks && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/existing_hooks/plugin.py",
+        }
 
         with patch("os.path.exists") as mock_exists:
             # Only plugin file exists, not requirements.txt
@@ -717,6 +762,10 @@ class TestPluginGeneratorEdgeCases:
         generator.plugin_working_directory = (
             "/mnt/workspace/plugins/parametersandvariables"
         )
+        generator.config = {
+            "setup_virtual_env": "cd /mnt/workspace/plugins/parametersandvariables && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+            "plugin_mounted_path": "/mnt/workspace/plugins/parametersandvariables/plugin.py",
+        }
 
         with patch("os.path.exists") as mock_exists:
             # Only plugin file exists, not requirements.txt

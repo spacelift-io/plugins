@@ -46,6 +46,7 @@ class PluginGenerator:
         self.plugin_class: Optional[Type[SpaceforgePlugin]] = None
         self.plugin_instance: Optional[SpaceforgePlugin] = None
         self.plugin_working_directory: Optional[str] = None
+        self.config: Optional[Dict[str, Any]] = None
 
     def load_plugin(self) -> None:
         """Load the plugin class from the specified path."""
@@ -80,6 +81,13 @@ class PluginGenerator:
         self.plugin_working_directory = (
             "/mnt/workspace/plugins/" + plugin_class.__plugin_name__.lower()
         )
+        self.config = {
+            "setup_virtual_env": (
+                f"cd {self.plugin_working_directory} && python -m venv ./venv && "
+                + "source venv/bin/activate && pip install spaceforge"
+            ),
+            "plugin_mounted_path": f"{self.plugin_working_directory}/{os.path.basename(self.plugin_path)}",
+        }
 
     def get_plugin_metadata(self) -> Dict[str, Union[str, List[str]]]:
         """Extract metadata from the plugin class."""
@@ -129,17 +137,12 @@ class PluginGenerator:
 
         return hook_methods
 
-    def get_plugin_contexts(self) -> List[Context]:
-        """Get context definitions from the plugin class."""
-
-        change_to_working_directory = f"cd {self.plugin_working_directory}"
-        setup_virtual_env = f"{change_to_working_directory} && python -m venv ./venv && source venv/bin/activate && pip install spaceforge"
-        hooks = {"before_init": [f"mkdir -p {self.plugin_working_directory}"]}
-        mounted_files = []
-
-        # Add a virtual environment before_init hook if requirements.txt exists
-        if os.path.exists("requirements.txt"):
-            hooks["before_init"].append(setup_virtual_env)
+    def _update_with_requirements(
+        self, hooks: Dict[str, List[str]], mounted_files: List[MountedFile]
+    ) -> None:
+        """Update the plugin hooks if there is a requirements.txt"""
+        if os.path.exists("requirements.txt") and self.config is not None:
+            hooks["before_init"].append(self.config["setup_virtual_env"])
             hooks["before_init"].append(f"pip install -r requirements.txt")
             # read the requirements.txt file
             with open("requirements.txt", "r") as f:
@@ -151,34 +154,73 @@ class PluginGenerator:
                     )
                 )
 
-        # Ensure the plugin file itself is mounted
-        plugin_mounted_path = (
-            f"{self.plugin_working_directory}/{os.path.basename(self.plugin_path)}"
-        )
-        if os.path.exists(self.plugin_path):
+    def _update_with_python_file(self, mounted_files: List[MountedFile]) -> None:
+        """Ensure the plugin file itself is mounted."""
+        if os.path.exists(self.plugin_path) and self.config is not None:
             with open(self.plugin_path, "r") as f:
                 mounted_files.append(
                     MountedFile(
-                        path=plugin_mounted_path,
+                        path=self.config["plugin_mounted_path"],
                         content=f.read(),
                         sensitive=False,
                     )
                 )
 
-        binary_cmd = self.generate_binary_install_command()
-        if binary_cmd != "":
-            hooks["before_init"].append(binary_cmd)
-
+    def _add_spaceforge_hooks(self, hooks: Dict[str, List[str]]) -> None:
         # Add the spaceforge hook to actually run the plugin
+        if self.config is None:
+            raise ValueError("Plugin config not set. Call load_plugin() first.")
+
         available_hooks = self.get_available_hooks()
         for hook in available_hooks:
             # Ensure the hook exists in the first context
             if hook not in hooks:
                 hooks[hook] = []
-            hooks[hook].append(setup_virtual_env)
+            hooks[hook].append(self.config["setup_virtual_env"])
             hooks[hook].append(
-                f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file {plugin_mounted_path} {hook}"
+                f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file {self.config['plugin_mounted_path']} {hook}"
             )
+
+    def _map_variables_to_parameters(self, contexts: List[Context]) -> None:
+        for context in contexts:
+            # Get the variables from the plugin and change the value_from_parameter to the ID of the parameter
+            # based on its name.
+            if context.env is None:
+                continue
+
+            for variable in context.env:
+                if variable.value_from_parameter:
+                    parameter_name = variable.value_from_parameter
+                    parameters = self.get_plugin_parameters()
+                    if parameters:
+                        parameter = next(
+                            (
+                                p
+                                for p in parameters
+                                if p.name == parameter_name or p.id == parameter_name
+                            ),
+                            None,
+                        )
+                        if parameter:
+                            variable.value_from_parameter = parameter.id
+                        else:
+                            raise ValueError(
+                                f"Parameter {parameter_name} not found for variable {variable.key}"
+                            )
+
+    def get_plugin_contexts(self) -> List[Context]:
+        """Get context definitions from the plugin class."""
+
+        f"cd {self.plugin_working_directory}"
+        hooks: Dict[str, List[str]] = {
+            "before_init": [f"mkdir -p {self.plugin_working_directory}"]
+        }
+        mounted_files: List[MountedFile] = []
+
+        self._update_with_requirements(hooks, mounted_files)
+        self._update_with_python_file(mounted_files)
+        self._generate_binary_install_command(hooks)
+        self._add_spaceforge_hooks(hooks)
 
         # Get the contexts and append the hooks and mounted files to it.
         if self.plugin_class is None:
@@ -206,38 +248,14 @@ class PluginGenerator:
         contexts[0].hooks.update(hooks)
         contexts[0].mounted_files.extend(mounted_files)
 
-        for context in contexts:
-            # Get the variables from the plugin and change the value_from_parameter to the ID of the parameter
-            # based on its name.
-            if context.env is None:
-                continue
-
-            for variable in context.env:
-                if variable.value_from_parameter:
-                    parameter_name = variable.value_from_parameter
-                    parameters = self.get_plugin_parameters()
-                    if parameters:
-                        parameter = next(
-                            (
-                                p
-                                for p in parameters
-                                if p.name == parameter_name or p.id == parameter_name
-                            ),
-                            None,
-                        )
-                        if parameter:
-                            variable.value_from_parameter = parameter.id
-                        else:
-                            raise ValueError(
-                                f"Parameter {parameter_name} not found for variable {variable.key}"
-                            )
+        self._map_variables_to_parameters(contexts)
 
         return contexts
 
-    def generate_binary_install_command(self) -> str:
+    def _generate_binary_install_command(self, hooks: Dict[str, List[str]]) -> None:
         binaries = self.get_plugin_binaries()
         if binaries is None:
-            return ""
+            return None
 
         binary_cmd = ""
         if len(binaries) > 0:
@@ -271,7 +289,8 @@ class PluginGenerator:
         if binary_cmd != "":
             binary_cmd += "cd /mnt/workspace/source/$TF_VAR_spacelift_project_root"
 
-        return binary_cmd
+        hooks["before_init"].append(binary_cmd)
+        return None
 
     def get_plugin_binaries(self) -> Optional[List[Binary]]:
         """Get binary definitions from the plugin class."""

@@ -51,6 +51,7 @@ setup(
             "black",
             "isort",
             "mypy",
+            "autoflake"
         ],
     },
     entry_points={
