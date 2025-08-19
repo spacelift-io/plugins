@@ -2,6 +2,9 @@ name: infracost
 version: 1.0.0
 description: A plugin for integrating with Infracost to estimate costs of infrastructure changes.
 author: Spacelift Team
+labels:
+- cost estimation
+- infrastructure
 parameters:
 - name: Infracost API Key
   description: The API key for Infracost authentication

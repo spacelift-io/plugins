@@ -43,6 +43,7 @@ dev = [
     "mypy",
     "types-PyYAML",
     "setuptools-scm[toml]>=6.2",
+    "autoflake"
 ]
 
 [project.urls]
@@ -79,7 +80,13 @@ disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
 testpaths = ["spaceforge"]
-python_files = ["*_test.py"]
+python_files = ["test_*.py"]
 
 [tool.setuptools_scm]
 write_to = "spaceforge/_version_scm.py"
+
+[tool.autoflake]
+imports = ["spaceforge", "typing"]
+remove-unused-variables = true
+ignore-pass-statements = true
+remove-all-unused-imports = true
