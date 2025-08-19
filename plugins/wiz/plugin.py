@@ -50,7 +50,7 @@ class WizPlugin(SpaceforgePlugin):
             env=[
                 Variable(
                     key="WIZ_CLIENT_ID",
-                    value_from_parameter="Wiz Client Secret",
+                    value_from_parameter="Wiz Client ID",
                     sensitive=True
                 ),
                 Variable(
