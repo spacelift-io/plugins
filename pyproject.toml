@@ -64,10 +64,12 @@ spaceforge = ["schema.json"]
 [tool.black]
 line-length = 88
 target-version = ["py39"]
+extend-exclude = "spaceforge/_version_scm.py"
 
 [tool.isort]
 profile = "black"
 line_length = 88
+skip = ["spaceforge/_version_scm.py"]
 
 [tool.mypy]
 python_version = "3.9"
