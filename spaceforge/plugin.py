@@ -33,9 +33,11 @@ class SpaceforgePlugin(ABC):
     def __init__(self) -> None:
         self.logger = self._setup_logger()
 
-        self._api_token = os.environ.get("SPACELIFT_API_TOKEN")
-        self._spacelift_domain = os.environ.get("TF_VAR_spacelift_graphql_endpoint")
-        self._api_enabled = self._api_token and self._spacelift_domain
+        self._api_token = os.environ.get("SPACELIFT_API_TOKEN") or False
+        self._spacelift_domain = (
+            os.environ.get("TF_VAR_spacelift_graphql_endpoint") or False
+        )
+        self._api_enabled = bool(self._api_token and self._spacelift_domain)
         self._workspace_root = os.environ.get("WORKSPACE_ROOT", os.getcwd())
         self._spacelift_markdown_endpoint = None
 
@@ -196,7 +198,7 @@ class SpaceforgePlugin(ABC):
             data["variables"] = variables
 
         req = urllib.request.Request(
-            self._spacelift_domain,
+            self._spacelift_domain,  # type: ignore[arg-type]
             json.dumps(data).encode("utf-8"),
             headers,
         )
