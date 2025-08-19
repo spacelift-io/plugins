@@ -30,6 +30,9 @@ description: |-
     - test_secret.yaml
   ```
 author: Spacelift Team
+labels:
+- secrets management
+- encryption
 contexts:
 - name_prefix: sops
   description: Main context for sops
@@ -134,5 +137,4 @@ contexts:
     - cd /mnt/workspace/plugins/sops && python -m venv ./venv && source venv/bin/activate && pip install spaceforge
     - pip install -r requirements.txt
     - mkdir -p /mnt/workspace/plugins/plugin_binaries && cd /mnt/workspace/plugins/plugin_binaries && ([[ "$(echo "$(arch)")" == "x86_64" ]] && curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64 -o /mnt/workspace/plugins/plugin_binaries/sops -L && chmod +x /mnt/workspace/plugins/plugin_binaries/sops || curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.arm64 -o /mnt/workspace/plugins/plugin_binaries/sops -L && chmod +x /mnt/workspace/plugins/plugin_binaries/sops) && cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-    - cd /mnt/workspace/plugins/sops && python -m venv ./venv && source venv/bin/activate && pip install spaceforge
     - cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file /mnt/workspace/plugins/sops/plugin.py before_init
