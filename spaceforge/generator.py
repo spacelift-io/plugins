@@ -142,7 +142,8 @@ class PluginGenerator:
     ) -> None:
         """Update the plugin hooks if there is a requirements.txt"""
         if os.path.exists("requirements.txt") and self.config is not None:
-            hooks["before_init"].append(self.config["setup_virtual_env"])
+            if self.config["setup_virtual_env"] not in hooks["before_init"]:
+                hooks["before_init"].append(self.config["setup_virtual_env"])
             hooks["before_init"].append(f"pip install -r requirements.txt")
             # read the requirements.txt file
             with open("requirements.txt", "r") as f:
@@ -176,7 +177,10 @@ class PluginGenerator:
             # Ensure the hook exists in the first context
             if hook not in hooks:
                 hooks[hook] = []
-            hooks[hook].append(self.config["setup_virtual_env"])
+
+            if self.config["setup_virtual_env"] not in hooks[hook]:
+                hooks[hook].append(self.config["setup_virtual_env"])
+
             hooks[hook].append(
                 f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file {self.config['plugin_mounted_path']} {hook}"
             )
