@@ -133,19 +133,13 @@ class PluginGenerator:
 
         change_to_working_directory = f"cd {self.plugin_working_directory}"
         setup_virtual_env = f"{change_to_working_directory} && python -m venv ./venv && source venv/bin/activate && pip install spaceforge"
-        hooks = {
-            "before_init": [
-                f"mkdir -p {self.plugin_working_directory}"
-            ]
-        }
+        hooks = {"before_init": [f"mkdir -p {self.plugin_working_directory}"]}
         mounted_files = []
 
         # Add a virtual environment before_init hook if requirements.txt exists
         if os.path.exists("requirements.txt"):
             hooks["before_init"].append(setup_virtual_env)
-            hooks["before_init"].append(
-                f"pip install -r requirements.txt"
-            )
+            hooks["before_init"].append(f"pip install -r requirements.txt")
             # read the requirements.txt file
             with open("requirements.txt", "r") as f:
                 mounted_files.append(
@@ -267,8 +261,10 @@ class PluginGenerator:
                 else "echo 'arm64 binary not available' && exit 1"
             )
 
-            binary_cmd += '([[ "$(echo "$(arch)")" == "x86_64" ]] && {} || {}) && '.format(
-                amd64_download_command, arm64_download_command
+            binary_cmd += (
+                '([[ "$(echo "$(arch)")" == "x86_64" ]] && {} || {}) && '.format(
+                    amd64_download_command, arm64_download_command
+                )
             )
 
         if binary_cmd != "":
