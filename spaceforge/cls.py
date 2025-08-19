@@ -1,3 +1,4 @@
+import uuid
 from typing import Dict, List, Literal, Optional
 
 from pydantic import Field
@@ -38,6 +39,7 @@ class Parameter:
         sensitive (bool): Whether the parameter contains sensitive information.
         required (bool): Whether the parameter is required.
         default (Optional[str]): The default value of the parameter, if any. (required if sensitive is False)
+        id (str): Unique identifier for the parameter.
     """
 
     name: str
@@ -45,6 +47,7 @@ class Parameter:
     sensitive: bool = False
     required: bool = False
     default: Optional[str] = None
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
     def __post_init__(self) -> None:
         if not self.required and self.default is None:

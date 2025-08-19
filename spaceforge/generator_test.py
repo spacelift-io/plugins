@@ -669,3 +669,66 @@ class TestPluginGeneratorEdgeCases:
         assert context.env is not None
         existing_vars = [var for var in context.env if var.key == "EXISTING"]
         assert len(existing_vars) == 1
+
+    def test_parameters_and_variables_id_generation(self) -> None:
+        class ParametersAndVariablesPlugin(SpaceforgePlugin):
+            __plugin_name__ = "parameters_and_variables"
+
+            __parameters__ = [
+                Parameter(
+                    name="api key",
+                    description="API key for authentication",
+                    required=True,
+                    sensitive=True,
+                ),
+                Parameter(
+                    name="endpoint",
+                    description="API endpoint URL",
+                    required=False,
+                    default="https://api.example.com",
+                ),
+            ]
+
+            __contexts__ = [
+                Context(
+                    name_prefix="existing",
+                    description="Existing context",
+                    hooks={"before_init": ["echo 'existing hook'"]},
+                    mounted_files=[
+                        MountedFile(
+                            path="/existing", content="existing", sensitive=False
+                        )
+                    ],
+                    env=[
+                        Variable(
+                            key="API_KEY",
+                            value_from_parameter="api key",
+                            sensitive=True,
+                        ),
+                        Variable(key="ENDPOINT", value_from_parameter="endpoint"),
+                    ],
+                )
+            ]
+
+            def after_plan(self) -> None:
+                pass
+
+        generator = PluginGenerator("/fake/path")
+        generator.plugin_class = ParametersAndVariablesPlugin
+        generator.plugin_working_directory = (
+            "/mnt/workspace/plugins/parametersandvariables"
+        )
+
+        with patch("os.path.exists") as mock_exists:
+            # Only plugin file exists, not requirements.txt
+            mock_exists.side_effect = lambda path: path == "/fake/path"
+            with patch("builtins.open", mock_open(read_data="fake content")):
+                contexts = generator.get_plugin_contexts()
+                parameters = generator.get_plugin_parameters()
+
+        assert contexts[0].env is not None
+        assert parameters is not None
+        assert parameters[0].id is not None
+        assert parameters[1].id is not None
+        assert parameters[0].id == contexts[0].env[0].value_from_parameter
+        assert parameters[1].id == contexts[0].env[1].value_from_parameter

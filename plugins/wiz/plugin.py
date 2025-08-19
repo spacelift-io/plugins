@@ -28,12 +28,14 @@ class WizPlugin(SpaceforgePlugin):
     __parameters__ = [
         Parameter(
             name="Wiz Client ID",
+            id="wiz_client_id",
             description="The client ID for Wiz API authentication",
             required=True,
             sensitive=True
         ),
         Parameter(
             name="Wiz Client Secret",
+            id="wiz_client_secret",
             description="The client secret for Wiz API authentication",
             required=True,
             sensitive=True
@@ -48,7 +50,7 @@ class WizPlugin(SpaceforgePlugin):
             env=[
                 Variable(
                     key="WIZ_CLIENT_ID",
-                    value_from_parameter="Wiz Client ID",
+                    value_from_parameter="Wiz Client Secret",
                     sensitive=True
                 ),
                 Variable(
