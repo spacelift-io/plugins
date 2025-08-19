@@ -132,17 +132,19 @@ class PluginGenerator:
         """Get context definitions from the plugin class."""
 
         change_to_working_directory = f"cd {self.plugin_working_directory}"
+        setup_virtual_env = f"{change_to_working_directory} && python -m venv ./venv && source venv/bin/activate && pip install spaceforge"
         hooks = {
             "before_init": [
-                f"mkdir -p {self.plugin_working_directory}",
-            ],
+                f"mkdir -p {self.plugin_working_directory}"
+            ]
         }
         mounted_files = []
 
         # Add a virtual environment before_init hook if requirements.txt exists
         if os.path.exists("requirements.txt"):
+            hooks["before_init"].append(setup_virtual_env)
             hooks["before_init"].append(
-                f"{change_to_working_directory} && python -m venv ./venv && source venv/bin/activate && pip install -r requirements.txt"
+                f"pip install -r requirements.txt"
             )
             # read the requirements.txt file
             with open("requirements.txt", "r") as f:
@@ -178,8 +180,9 @@ class PluginGenerator:
             # Ensure the hook exists in the first context
             if hook not in hooks:
                 hooks[hook] = []
+            hooks[hook].append(setup_virtual_env)
             hooks[hook].append(
-                f"{change_to_working_directory} && python -m spaceforge runner --plugin-file {plugin_mounted_path} {hook}"
+                f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file {plugin_mounted_path} {hook}"
             )
 
         # Get the contexts and append the hooks and mounted files to it.
@@ -264,11 +267,13 @@ class PluginGenerator:
                 else "echo 'arm64 binary not available' && exit 1"
             )
 
-            binary_cmd += '([[ "$(echo "$(arch)")" == "x86_64" ]] && {} || {})'.format(
+            binary_cmd += '([[ "$(echo "$(arch)")" == "x86_64" ]] && {} || {}) && '.format(
                 amd64_download_command, arm64_download_command
             )
-            if i < len(binaries) - 1:
-                binary_cmd += " && "
+
+        if binary_cmd != "":
+            binary_cmd += "cd /mnt/workspace/source/$TF_VAR_spacelift_project_root"
+
         return binary_cmd
 
     def get_plugin_binaries(self) -> Optional[List[Binary]]:

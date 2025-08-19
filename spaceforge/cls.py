@@ -20,8 +20,7 @@ class Binary:
 
     Attributes:
         name (str): The name of the binary file.
-        path (str): The path to the binary file.
-        sensitive (bool): Whether the binary file is sensitive.
+        download_urls (Dict[BinaryType, str]): A dictionary mapping binary types to their download URLs.
     """
 
     name: str
@@ -174,7 +173,7 @@ class PluginManifest:
     A class to represent the manifest of a Spacelift plugin.
 
     Attributes:
-        name_prefix (str): The name of the plugin, will be appended with a unique ID.
+        name (str): The name of the plugin, will be appended with a unique ID.
         description (str): A description of the plugin.
         author (str): The author of the plugin.
         parameters (list[Parameter]): List of parameters for the plugin.
