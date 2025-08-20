@@ -4,7 +4,6 @@ Plugin runner for executing hook methods.
 
 import importlib.util
 import os
-import sys
 from typing import Optional
 
 
@@ -101,15 +100,4 @@ def runner_command(hook_name: str, plugin_file: str) -> None:
     This command is typically used internally by Spacelift to execute plugin hooks.
     """
     runner = PluginRunner(plugin_file)
-    runner.run_hook(hook_name)
-
-
-def main() -> None:
-    """Legacy main entry point for backward compatibility."""
-    if len(sys.argv) != 2:
-        print("Usage: python -m spaceforge.runner <hook_name>")
-        sys.exit(1)
-
-    hook_name = sys.argv[1]
-    runner = PluginRunner()
     runner.run_hook(hook_name)

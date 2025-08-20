@@ -1,12 +1,9 @@
 """Tests for PluginRunner CLI interface."""
 
 import os
-import sys
 from unittest.mock import Mock, patch
 
-import pytest
-
-from spaceforge.runner import main, runner_command
+from spaceforge.runner import runner_command
 
 
 class TestRunnerClickCommand:
@@ -70,79 +67,3 @@ class ClickTestPlugin(SpaceforgePlugin):
         assert result.exit_code == 0
         mock_runner_class.assert_called_once_with(custom_plugin_path)
         mock_runner.run_hook.assert_called_once_with("before_apply")
-
-
-class TestLegacyMainFunction:
-    """Test legacy main function compatibility."""
-
-    @patch("spaceforge.runner.PluginRunner")
-    @patch("builtins.print")
-    def test_should_exit_with_usage_when_insufficient_args(
-        self, mock_print: Mock, mock_runner_class: Mock
-    ) -> None:
-        """Should print usage and exit when no hook name provided."""
-        # Arrange
-        original_argv = sys.argv
-
-        # Act & Assert
-        try:
-            sys.argv = ["runner.py"]  # Missing hook_name
-
-            with pytest.raises(SystemExit) as exc_info:
-                main()
-
-            assert exc_info.value.code == 1
-            mock_print.assert_called_with(
-                "Usage: python -m spaceforge.runner <hook_name>"
-            )
-            mock_runner_class.assert_not_called()
-
-        finally:
-            sys.argv = original_argv
-
-    @patch("spaceforge.runner.PluginRunner")
-    @patch("builtins.print")
-    def test_should_exit_with_usage_when_too_many_args(
-        self, mock_print: Mock, mock_runner_class: Mock
-    ) -> None:
-        """Should print usage and exit when too many arguments provided."""
-        # Arrange
-        original_argv = sys.argv
-
-        # Act & Assert
-        try:
-            sys.argv = ["runner.py", "after_plan", "extra_arg"]
-
-            with pytest.raises(SystemExit) as exc_info:
-                main()
-
-            assert exc_info.value.code == 1
-            mock_print.assert_called_with(
-                "Usage: python -m spaceforge.runner <hook_name>"
-            )
-            mock_runner_class.assert_not_called()
-
-        finally:
-            sys.argv = original_argv
-
-    @patch("spaceforge.runner.PluginRunner")
-    def test_should_execute_hook_when_valid_args_provided(
-        self, mock_runner_class: Mock
-    ) -> None:
-        """Should execute hook when correct number of arguments provided."""
-        # Arrange
-        mock_runner = Mock()
-        mock_runner_class.return_value = mock_runner
-        original_argv = sys.argv
-
-        # Act
-        try:
-            sys.argv = ["runner.py", "after_plan"]
-            main()
-
-        finally:
-            sys.argv = original_argv
-
-        # Assert
-        mock_runner_class.assert_called_once_with()
-        mock_runner.run_hook.assert_called_once_with("after_plan")

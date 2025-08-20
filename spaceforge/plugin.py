@@ -31,6 +31,8 @@ class SpaceforgePlugin(ABC):
     __author__ = "Spacelift Team"
 
     def __init__(self) -> None:
+        self._run_id = os.environ.get("TF_VAR_spacelift_run_id", "local")
+        self._is_local = self._run_id == "local"
         self.logger = self._setup_logger()
 
         self._api_token = os.environ.get("SPACELIFT_API_TOKEN") or False
@@ -68,7 +70,7 @@ class SpaceforgePlugin(ABC):
         warn_color = "\033[33m"
         error_color = "\033[31m"
         end_color = "\033[0m"
-        run_id = os.environ.get("TF_VAR_spacelift_run_id", "local")
+        run_id = self._run_id
         plugin_name = self.__plugin_name__
 
         class ColorFormatter(logging.Formatter):
@@ -99,7 +101,7 @@ class SpaceforgePlugin(ABC):
             handler.setFormatter(ColorFormatter())
 
         # Always check for debug mode spacelift variable
-        if os.environ.get("SPACELIFT_DEBUG"):
+        if os.environ.get("SPACELIFT_DEBUG") or self._is_local:
             logger.setLevel(logging.DEBUG)
         else:
             logger.setLevel(logging.INFO)
@@ -238,7 +240,7 @@ class SpaceforgePlugin(ABC):
         Args:
             markdown: The markdown content to send
         """
-        if os.environ.get("TF_VAR_spacelift_run_id", "local") == "local":
+        if self._is_local:
             self.logger.info(
                 "Spacelift run is local. Not uploading markdown. Below is a preview of what would be sent"
             )
@@ -308,6 +310,13 @@ class SpaceforgePlugin(ABC):
             input_name: The name of the input to add (will be available as input.third_party_metadata.custom.{input_name} to the policy).
             data: Dictionary containing data to add to the policy input
         """
+        if self._is_local:
+            self.logger.info(
+                "Spacelift run is local. Not writing custom policy input. Below is a preview of what would be written"
+            )
+            self.logger.info(json.dumps(data, indent=2))
+            return
+
         with open(
             f"{self._workspace_root}/{input_name}.custom.spacelift.json", "w"
         ) as f:

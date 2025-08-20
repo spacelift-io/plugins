@@ -104,6 +104,7 @@ class TestSpaceforgePluginFileOperations:
         # Arrange
         monkeypatch.chdir(temp_dir)
         plugin = SpaceforgePlugin()
+        plugin._is_local = False
         plugin._workspace_root = temp_dir
         custom_policy_data = {"test": "input"}
 
