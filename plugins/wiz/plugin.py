@@ -88,9 +88,9 @@ webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
   input.run_updated.run.marked_unsafe == true
 }
             """,
-            labels={
+            labels=[
                 "wiz-plugin"
-            }
+            ]
         )
     ]
 

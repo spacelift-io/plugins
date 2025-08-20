@@ -134,9 +134,9 @@ contexts:
         input.run_updated.run.marked_unsafe == true
       }
                   """,
-                  labels={
+                  labels=[
                       "wiz-plugin"
-                  }
+                  ]
               )
           ]
 
@@ -266,7 +266,7 @@ contexts:
       fi
       . venv/bin/activate
 
-      if command -v spaceforge; then
+      if ! command -v spaceforge; then
           pip install spaceforge
       fi
 
