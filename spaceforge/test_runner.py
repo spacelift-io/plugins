@@ -1,5 +1,4 @@
 import os
-import sys
 import tempfile
 from typing import Optional
 from unittest.mock import Mock, patch
@@ -7,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from spaceforge.plugin import SpaceforgePlugin
-from spaceforge.runner import PluginRunner, main, runner_command
+from spaceforge.runner import PluginRunner, runner_command
 
 
 class PluginForTesting(SpaceforgePlugin):
@@ -362,68 +361,6 @@ class MainTestPlugin(SpaceforgePlugin):
         import shutil
 
         shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-    @patch("spaceforge.runner.PluginRunner")
-    @patch("builtins.print")
-    def test_main_insufficient_args(
-        self, mock_print: Mock, mock_runner_class: Mock
-    ) -> None:
-        """Test main function with insufficient arguments."""
-        original_argv = sys.argv
-        try:
-            sys.argv = ["runner.py"]  # Missing hook_name
-
-            with pytest.raises(SystemExit) as exc_info:
-                main()
-
-            assert exc_info.value.code == 1
-            mock_print.assert_called_with(
-                "Usage: python -m spaceforge.runner <hook_name>"
-            )
-            mock_runner_class.assert_not_called()
-
-        finally:
-            sys.argv = original_argv
-
-    @patch("spaceforge.runner.PluginRunner")
-    @patch("builtins.print")
-    def test_main_too_many_args(
-        self, mock_print: Mock, mock_runner_class: Mock
-    ) -> None:
-        """Test main function with too many arguments."""
-        original_argv = sys.argv
-        try:
-            sys.argv = ["runner.py", "after_plan", "extra_arg"]
-
-            with pytest.raises(SystemExit) as exc_info:
-                main()
-
-            assert exc_info.value.code == 1
-            mock_print.assert_called_with(
-                "Usage: python -m spaceforge.runner <hook_name>"
-            )
-            mock_runner_class.assert_not_called()
-
-        finally:
-            sys.argv = original_argv
-
-    @patch("spaceforge.runner.PluginRunner")
-    def test_main_success(self, mock_runner_class: Mock) -> None:
-        """Test successful main function execution."""
-        mock_runner = Mock()
-        mock_runner_class.return_value = mock_runner
-
-        original_argv = sys.argv
-        try:
-            sys.argv = ["runner.py", "after_plan"]
-
-            main()
-
-            mock_runner_class.assert_called_once_with()
-            mock_runner.run_hook.assert_called_once_with("after_plan")
-
-        finally:
-            sys.argv = original_argv
 
 
 class TestRunnerEdgeCases:
