@@ -179,4 +179,6 @@ webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
                     markdown += "\n"
             if "reportUrl" in stdout_json:
                 markdown += f"<a href=\"{stdout_json['reportUrl']}\" rel=\"noopener noreferrer\">View Report</a>\n"
-            self.send_markdown(markdown)
+            result = self.send_markdown(markdown)
+            if not result:
+                self.logger.error("Failed to send Wiz CLI output to spacelift")
