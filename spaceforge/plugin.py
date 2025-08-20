@@ -233,7 +233,7 @@ class SpaceforgePlugin(ABC):
             data: Dict[str, Any] = json.load(f)
             return data
 
-    def send_markdown(self, markdown: str) -> None:
+    def send_markdown(self, markdown: str) -> bool:
         """
         Send a markdown message to the Spacelift run.
 
@@ -245,13 +245,13 @@ class SpaceforgePlugin(ABC):
                 "Spacelift run is local. Not uploading markdown. Below is a preview of what would be sent"
             )
             self.logger.info(markdown)
-            return
+            return True
 
         if self._spacelift_markdown_endpoint is None:
             self.logger.error(
                 'API is not enabled, please export "SPACELIFT_API_TOKEN" and "TF_VAR_spacelift_graphql_endpoint".'
             )
-            exit(1)
+            return False
 
         headers = {"Authorization": f"Bearer {self._api_token}"}
         body = {
@@ -266,26 +266,30 @@ class SpaceforgePlugin(ABC):
             method="POST",
         )
 
-        with urllib.request.urlopen(req) as response:
-            if response.status != 200:
-                self.logger.error(
-                    f"Error getting signed URL for markdown upload: {response}"
-                )
-                return
+        try:
+            with urllib.request.urlopen(req) as response:
+                if response.status != 200:
+                    self.logger.error(
+                        f"Error getting signed URL for markdown upload: {response}"
+                    )
+                    return False
 
-            raw_response = response.read().decode("utf-8")
-            self.logger.debug(raw_response)
-            resp: Dict[str, Any] = json.loads(raw_response)
-            if "url" not in resp or "headers" not in resp:
-                self.logger.error(
-                    "Markdown signed url response does not contain 'url' or 'headers' key."
-                )
-                return
+                raw_response = response.read().decode("utf-8")
+                self.logger.debug(raw_response)
+                resp: Dict[str, Any] = json.loads(raw_response)
+                if "url" not in resp or "headers" not in resp:
+                    self.logger.error(
+                        "Markdown signed url response does not contain 'url' or 'headers' key."
+                    )
+                    return False
 
-            signed_url = resp["url"]
-            headers = resp["headers"]
-            headers["Content-Type"] = "text/markdown"
-            headers["Content-Length"] = str(len(markdown))
+                signed_url = resp["url"]
+                headers = resp["headers"]
+                headers["Content-Type"] = "text/markdown"
+                headers["Content-Length"] = str(len(markdown))
+        except urllib.request.HTTPError as e:
+            self.logger.error(f"HTTP error occurred: {e.code} - {e.reason}")
+            return False
 
         # Now we upload the markdown content to the signed URL
         req = urllib.request.Request(
@@ -300,8 +304,9 @@ class SpaceforgePlugin(ABC):
                 self.logger.error(
                     f"Error uploading markdown content: {put_response.status}"
                 )
-                return
+                return False
             self.logger.debug("Markdown content uploaded successfully.")
+        return True
 
     def add_to_policy_input(self, input_name: str, data: Dict[str, Any]) -> None:
         """
