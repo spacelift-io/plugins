@@ -118,7 +118,7 @@ class Context:
     Attributes:
         name_prefix (str): The name of the context, will be appended with a unique ID.
         description (str): A description of the context.
-        labels (dict): Labels associated with the context.
+        labels (Optional[List[str]]): Labels associated with the context.
         env (list): List of variables associated with the context.
         hooks (dict): Hooks associated with the context.
     """
@@ -128,7 +128,7 @@ class Context:
     env: Optional[List[Variable]] = optional_field
     mounted_files: Optional[List[MountedFile]] = optional_field
     hooks: Optional[Dict[HookType, List[str]]] = optional_field
-    labels: Optional[Dict[str, str]] = optional_field
+    labels: Optional[List[str]] = optional_field
 
 
 @pydantic_dataclass
@@ -139,14 +139,14 @@ class Webhook:
     Attributes:
         name_prefix (str): The name of the webhook, will be appended with a unique ID.
         endpoint (str): The URL endpoint for the webhook.
-        labels (Optional[dict]): Labels associated with the webhook.
-        secrets (Optional[list[Variable]]): List of secrets associated with the webhook.
+        labels (Optional[List[str]]): Labels associated with the webhook.
+        secret (str): the ID of the parameter where the webhook secret is retrieved from
     """
 
     name_prefix: str
     endpoint: str
-    labels: Optional[Dict[str, str]] = optional_field
-    secrets: Optional[List[Variable]] = optional_field
+    secretFromParameter: str
+    labels: Optional[List[str]] = optional_field
 
 
 @pydantic_dataclass
@@ -158,13 +158,13 @@ class Policy:
         name_prefix (str): The name of the policy, will be appended with a unique ID.
         type (str): The type of the policy (e.g., "terraform", "kubernetes").
         body (str): The body of the policy, typically a configuration or script.
-        labels (Optional[dict[str, str]]): Labels associated with the policy.
+        labels (Optional[List[str]]): Labels associated with the policy.
     """
 
     name_prefix: str
     type: str
     body: str
-    labels: Optional[Dict[str, str]] = optional_field
+    labels: Optional[List[str]] = optional_field
 
 
 @pydantic_dataclass
