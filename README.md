@@ -204,6 +204,22 @@ webhook[{"endpoint_id": "security-alerts"}] {
 ]
 ```
 
+### Webhooks
+
+Define webhooks to trigger external actions:
+
+```python
+__webhooks__ = [
+    Webhook(
+        name_prefix="security-alerts",
+        description="Send security alerts to external service",
+        endpoint="https://alerts.example.com/webhook",
+        secrets=[
+            Variable(key="amazing", value="secret-value", sensitive=True)
+        ],
+    )
+]
+
 ## Plugin Features
 
 ### Logging
@@ -288,6 +304,21 @@ def after_plan(self):
     """
     
     self.send_markdown(markdown)
+```
+
+### Append to Policy Input
+
+Append custom data to the OPA policy input:
+
+The following example will create input available via `input.third_party_metadata.custom.my_custom_data` in your OPA policies:
+```python
+def after_plan(self):
+    self.append_policy_input("my_custom_data", {
+        "scan_results": {
+            "passed": True,
+            "issues": []
+        }
+    })
 ```
 
 ## CLI Commands

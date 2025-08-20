@@ -38,7 +38,7 @@ class SpaceforgePlugin(ABC):
             os.environ.get("TF_VAR_spacelift_graphql_endpoint") or False
         )
         self._api_enabled = bool(self._api_token and self._spacelift_domain)
-        self._workspace_root = os.environ.get("WORKSPACE_ROOT", os.getcwd())
+        self._workspace_root = os.getcwd()
         self._spacelift_markdown_endpoint = None
 
         # This should be the last thing we do in the constructor
@@ -299,6 +299,19 @@ class SpaceforgePlugin(ABC):
                 )
                 return
             self.logger.debug("Markdown content uploaded successfully.")
+
+    def add_to_policy_input(self, input_name: str, data: Dict[str, Any]) -> None:
+        """
+        Add data to the policy input for the current Spacelift run.
+
+        Args:
+            input_name: The name of the input to add (will be available as input.third_party_metadata.custom.{input_name} to the policy).
+            data: Dictionary containing data to add to the policy input
+        """
+        with open(
+            f"{self._workspace_root}/{input_name}.custom.spacelift.json", "w"
+        ) as f:
+            f.write(json.dumps(data))
 
     # Hook methods - override these in your plugin
     def before_init(self) -> None:

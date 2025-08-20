@@ -60,7 +60,6 @@ def mock_env() -> Dict[str, str]:
     return {
         "SPACELIFT_API_TOKEN": "test_token",
         "TF_VAR_spacelift_graphql_endpoint": "https://test.spacelift.io",
-        "WORKSPACE_ROOT": "/test/workspace",
     }
 
 

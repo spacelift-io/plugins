@@ -96,3 +96,22 @@ class TestSpaceforgePluginFileOperations:
         # Assert
         assert result is None
         mock_error.assert_called_with("spacelift.state.before.json does not exist.")
+
+    def test_custom_policy_input(
+        self, temp_dir: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should return custom policy input when file exists."""
+        # Arrange
+        monkeypatch.chdir(temp_dir)
+        plugin = SpaceforgePlugin()
+        plugin._workspace_root = temp_dir
+        custom_policy_data = {"test": "input"}
+
+        # Act
+        plugin.add_to_policy_input("test", custom_policy_data)
+
+        with open(temp_dir + "/test.custom.spacelift.json", "r") as f:
+            policy_data = json.load(f)
+
+        # Assert
+        assert policy_data == custom_policy_data
