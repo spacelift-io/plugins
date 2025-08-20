@@ -80,17 +80,28 @@ class TestPluginGeneratorBinaries:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
+        mounted_files: List = []
 
         # Act
-        generator._generate_binary_install_command(hooks)
-        command = hooks["before_init"][-1]
+        generator._generate_binary_install_command(hooks, mounted_files)
 
         # Assert
-        assert "mkdir -p /mnt/workspace/plugins/plugin_binaries" in command
-        assert "curl https://example.com/multi-cli-amd64" in command
-        assert "curl https://example.com/multi-cli-arm64" in command
-        assert "arch" in command
-        assert "x86_64" in command
+        # Should have added a script execution to hooks
+        assert len(hooks["before_init"]) == 1
+        command = hooks["before_init"][0]
+
+        # Should have added a mounted file with script content
+        assert len(mounted_files) == 1
+        script_content = mounted_files[0].content
+
+        # Check that hook command runs the script
+        assert "chmod +x" in command
+        assert "binary_install_multi-cli.sh" in command
+
+        # Check script content contains binary installation logic
+        assert "multi-cli" in script_content
+        assert "https://example.com/multi-cli-amd64" in script_content
+        assert "https://example.com/multi-cli-arm64" in script_content
 
     def test_should_not_add_commands_when_no_binaries(self) -> None:
         """Should not add installation commands when plugin has no binaries."""
@@ -108,12 +119,15 @@ class TestPluginGeneratorBinaries:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
+        mounted_files: List = []
 
         # Act
-        generator._generate_binary_install_command(hooks)
+        generator._generate_binary_install_command(hooks, mounted_files)
 
         # Assert
+        # No binaries should mean no new commands or files added
         assert len(hooks["before_init"]) == 0
+        assert len(mounted_files) == 0
 
     def test_should_raise_error_when_binary_has_no_download_urls(self) -> None:
         """Should raise ValueError when binary has empty download URLs."""
@@ -131,10 +145,11 @@ class TestPluginGeneratorBinaries:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
+        mounted_files: List = []
 
         # Act & Assert
         with pytest.raises(ValueError, match="must have at least one download URL"):
-            generator._generate_binary_install_command(hooks)
+            generator._generate_binary_install_command(hooks, mounted_files)
 
     def test_should_handle_single_architecture_binary(self) -> None:
         """Should generate appropriate commands for single architecture binary."""
@@ -157,11 +172,23 @@ class TestPluginGeneratorBinaries:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
+        mounted_files: List = []
 
         # Act
-        generator._generate_binary_install_command(hooks)
-        command = hooks["before_init"][-1]
+        generator._generate_binary_install_command(hooks, mounted_files)
 
         # Assert
-        assert "https://example.com/binary-amd64" in command
-        assert "arm64 binary not available" in command
+        # Should have added a script execution to hooks
+        assert len(hooks["before_init"]) == 1
+        command = hooks["before_init"][0]
+
+        # Should have added a mounted file with script content
+        assert len(mounted_files) == 1
+        script_content = mounted_files[0].content
+
+        # Check that hook command runs the script
+        assert "chmod +x" in command
+        assert "binary_install_single-arch.sh" in command
+
+        # Check script content contains the binary URL
+        assert "https://example.com/binary-amd64" in script_content
