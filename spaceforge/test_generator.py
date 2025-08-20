@@ -55,7 +55,7 @@ class PluginExample(SpaceforgePlugin):
         Context(
             name_prefix="test_context",
             description="Test context",
-            labels={"env": "test"},
+            labels=["env:test"],
             env=[Variable(key="TEST_VAR", value="test_value")],
         )
     ]
@@ -64,7 +64,8 @@ class PluginExample(SpaceforgePlugin):
         Webhook(
             name_prefix="test_webhook",
             endpoint="https://webhook.example.com",
-            secrets=[Variable(key="SECRET_KEY", value_from_parameter="api_key")],
+            secretFromParameter="api_key",
+            labels=["type:notification"],
         )
     ]
 
@@ -73,7 +74,7 @@ class PluginExample(SpaceforgePlugin):
             name_prefix="test_policy",
             type="notification",
             body="package test",
-            labels={"type": "security"},
+            labels=["type:security"],
         )
     ]
 

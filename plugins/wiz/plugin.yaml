@@ -135,7 +135,7 @@ contexts:
       }
                   """,
                   labels={
-                      "policy_type": "security"
+                      "wiz-plugin"
                   }
               )
           ]
@@ -245,4 +245,4 @@ policies:
       input.run_updated.run.marked_unsafe == true
     }
   labels:
-    policy_type: security
+  - wiz-plugin

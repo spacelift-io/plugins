@@ -89,7 +89,7 @@ webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
 }
             """,
             labels={
-                "policy_type": "security"
+                "wiz-plugin"
             }
         )
     ]
