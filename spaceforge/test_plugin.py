@@ -38,7 +38,7 @@ class TestSpaceforgePluginInitialization:
         assert plugin._api_token == "test_token"
         assert plugin._spacelift_domain == "https://test.spacelift.io"
         assert plugin._api_enabled is True
-        assert plugin._workspace_root == "/test/workspace"
+        assert plugin._workspace_root == os.getcwd()
 
     def test_should_normalize_domain_with_trailing_slash(self) -> None:
         """Should remove trailing slash from domain URL."""

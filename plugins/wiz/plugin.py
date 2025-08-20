@@ -6,7 +6,20 @@ from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, B
 
 class WizPlugin(SpaceforgePlugin):
     """
-    A plugin for integrating with Wiz security platform.
+# Plugin Wiz
+
+This adds the `wiz` plugin to your Spacelift account.
+It will scan your infrastructure as code (IaC) for vulnerabilities using Wiz CLI, generating a report of findings and
+adding them to the policy input.
+
+## Usage
+
+1. Spin up the plugin
+2. Add the autoattach label to any stack that has access to your decryption keys.
+
+The Wiz plugin scans your IaC files for vulnerabilities and generates a report.
+You can also access the data from a plan policy via the `input.third_party_metadata.custom.wiz` object.
+Samples of these policies are included with the plugin.
     """
 
     # Plugin metadata
@@ -120,45 +133,50 @@ webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
             self.logger.debug(stdout_json)
             exit(1)
 
-        findings = {}
-        # Sort the findings by the severity and their rule id
-        for match in stdout_json["result"]["ruleMatches"]:
-            if match["severity"] not in findings:
-                findings[match["severity"]] = {}
-            if match["rule"]["id"] not in findings[match["severity"]]:
-                findings[match["severity"]][match["rule"]["id"]] = {
-                    "rule": match["rule"],
-                    "matches": []
-                }
-            findings[match["severity"]][match["rule"]["id"]]["matches"].append(match)
+        self.add_to_policy_input("wiz", stdout_json)
 
-        markdown = "# Wiz IAC Scan Findings\n\n"
-        markdown += f"**Status:** {stdout_json['status']['state']} **Verdict:** {stdout_json['status']['verdict']}\n"
-        for severity, matches in findings.items():
-            severity = severity.upper()
+        if stdout_json["result"]["ruleMatches"] is None:
+            self.logger.info("No findings found in the IAC scan.")
+        else:
+            findings = {}
+            # Sort the findings by the severity and their rule id
+            for match in stdout_json["result"]["ruleMatches"]:
+                if match["severity"] not in findings:
+                    findings[match["severity"]] = {}
+                if match["rule"]["id"] not in findings[match["severity"]]:
+                    findings[match["severity"]][match["rule"]["id"]] = {
+                        "rule": match["rule"],
+                        "matches": []
+                    }
+                findings[match["severity"]][match["rule"]["id"]]["matches"].append(match)
 
-            emoji = None
-            if severity == "INFORMATIONAL":
-                emoji = "🟢"
-            if severity == "LOW":
-                emoji = "🟡"
-            elif severity == "MEDIUM":
-                emoji = "🟡"
-            elif severity == "HIGH":
-                emoji = "🟠"
-            elif severity == "CRITICAL":
-                emoji = "🔴"
-            if emoji is not None:
-                markdown += f"### {emoji} {severity} Findings\n"
-            else:
-                markdown += f"### {severity} Findings\n"
+            markdown = "# Wiz IAC Scan Findings\n\n"
+            markdown += f"**Status:** {stdout_json['status']['state']} **Verdict:** {stdout_json['status']['verdict']}\n"
+            for severity, matches in findings.items():
+                severity = severity.upper()
 
-            for rule_id, rule_data in matches.items():
-                markdown += f"#### {rule_data['rule']['name']} (ID: {rule_id})\n"
-                for cycled_rule in rule_data["matches"]:
-                    for match in cycled_rule["matches"]:
-                        markdown += f"- File: {match['fileName']}, Line: {match['lineNumber']}\n"
-                markdown += "\n"
-        if "reportUrl" in stdout_json:
-            markdown += f"<a href=\"{stdout_json['reportUrl']}\" rel=\"noopener noreferrer\">View Report</a>\n"
-        self.send_markdown(markdown)
+                emoji = None
+                if severity == "INFORMATIONAL":
+                    emoji = "🟢"
+                if severity == "LOW":
+                    emoji = "🟡"
+                elif severity == "MEDIUM":
+                    emoji = "🟡"
+                elif severity == "HIGH":
+                    emoji = "🟠"
+                elif severity == "CRITICAL":
+                    emoji = "🔴"
+                if emoji is not None:
+                    markdown += f"### {emoji} {severity} Findings\n"
+                else:
+                    markdown += f"### {severity} Findings\n"
+
+                for rule_id, rule_data in matches.items():
+                    markdown += f"#### {rule_data['rule']['name']} (ID: {rule_id})\n"
+                    for cycled_rule in rule_data["matches"]:
+                        for match in cycled_rule["matches"]:
+                            markdown += f"- File: {match['fileName']}, Line: {match['lineNumber']}\n"
+                    markdown += "\n"
+            if "reportUrl" in stdout_json:
+                markdown += f"<a href=\"{stdout_json['reportUrl']}\" rel=\"noopener noreferrer\">View Report</a>\n"
+            self.send_markdown(markdown)
