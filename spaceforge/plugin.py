@@ -263,12 +263,13 @@ class SpaceforgePlugin(ABC):
             self._spacelift_markdown_endpoint,
             json.dumps(body).encode("utf-8"),
             headers,
+            method="POST",
         )
 
         with urllib.request.urlopen(req) as response:
             if response.status != 200:
                 self.logger.error(
-                    f"Error getting signed URL for markdown upload: {response.status}"
+                    f"Error getting signed URL for markdown upload: {response}"
                 )
                 return
 
