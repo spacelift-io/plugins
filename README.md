@@ -540,6 +540,15 @@ export SPACEFORGE_PARAM_SEVERITY_THRESHOLD="high"
 spaceforge runner after_plan
 ```
 
+## Speeding up plugin execution
+
+There are a few things you can do to speed up plugin execution.
+
+1. Ensure your runner has `spaceforge` preinstalled. This will avoid the overhead of installing it during the run. (15-30 seconds)
+2. If youre using binaries, we will only install the binary if its not found. You can gain a few seconds by ensuring its already on the runner.
+3. If your plugin has a lot of dependencies, consider using a prebuilt runner image with your plugin and its dependencies installed. This avoids the overhead of installing them during each run.
+4. Ensure your runner has enough core resources (CPU, memory) to handle the plugin execution efficiently. If your plugin is resource-intensive, consider using a more powerful runner.
+
 ## Next Steps
 
 1. **Install spaceforge:** `pip install spaceforge`

@@ -84,7 +84,7 @@ class PluginGenerator:
         self.config = {
             "setup_virtual_env": (
                 f"cd {self.plugin_working_directory} && python -m venv ./venv && "
-                + "source venv/bin/activate && pip install spaceforge"
+                + "source venv/bin/activate && (command -v spaceforge &> /dev/null || pip install spaceforge)"
             ),
             "plugin_mounted_path": f"{self.plugin_working_directory}/{os.path.basename(self.plugin_path)}",
         }
@@ -182,7 +182,7 @@ class PluginGenerator:
                 hooks[hook].append(self.config["setup_virtual_env"])
 
             hooks[hook].append(
-                f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file {self.config['plugin_mounted_path']} {hook}"
+                f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && spaceforge runner --plugin-file {self.config['plugin_mounted_path']} {hook}"
             )
 
     def _map_variables_to_parameters(self, contexts: List[Context]) -> None:
@@ -272,14 +272,15 @@ class PluginGenerator:
                     f"Binary {binary.name} must have at least one download URL defined (amd64 or arm64)"
                 )
 
+            # These commands will only download the binary if they arent already in the path.
             binary_path = f"{static_binary_directory}/{binary.name}"
             amd64_download_command = (
-                f"curl {amd64_url} -o {binary_path} -L && chmod +x {binary_path}"
+                f"(command -v {binary.name} &> /dev/null || curl {amd64_url} -o {binary_path} -L && chmod +x {binary_path})"
                 if amd64_url is not None
                 else "echo 'amd64 binary not available' && exit 1"
             )
             arm64_download_command = (
-                f"curl {arm64_url} -o {binary_path} -L && chmod +x {binary_path}"
+                f"(command -v {binary.name} &> /dev/null || curl {arm64_url} -o {binary_path} -L && chmod +x {binary_path})"
                 if arm64_url is not None
                 else "echo 'arm64 binary not available' && exit 1"
             )
