@@ -3,7 +3,7 @@
 set -e
 
 echo "Setting up dev dependencies..."
-pip install ".[dev]"
+pip install -e ".[dev]"
 
 echo "Running pytests..."
 python -m pytest spaceforge/ -v

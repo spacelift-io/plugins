@@ -1,6 +1,6 @@
 import os
 import tempfile
-from typing import Dict, List
+from typing import Any, Dict, List
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -326,14 +326,25 @@ class NotAPlugin:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
-        generator._generate_binary_install_command(hooks)
-        command = hooks["before_init"][-1]
+        mounted_files: List = []
+        generator._generate_binary_install_command(hooks, mounted_files)
 
-        assert "mkdir -p /mnt/workspace/plugins/plugin_binaries" in command
-        assert "curl https://example.com/test-cli-amd64" in command
-        assert "curl https://example.com/test-cli-arm64" in command
-        assert "arch" in command
-        assert "x86_64" in command
+        # Should have added a script execution to hooks
+        assert len(hooks["before_init"]) == 1
+        command = hooks["before_init"][0]
+
+        # Should have added a mounted file with script content
+        assert len(mounted_files) == 1
+        script_content = mounted_files[0].content
+
+        # Check that hook command runs the script
+        assert "chmod +x" in command
+        assert "binary_install_test-cli.sh" in command
+
+        # Check script content contains binary installation logic
+        assert "test-cli" in script_content
+        assert "https://example.com/test-cli-amd64" in script_content
+        assert "https://example.com/test-cli-arm64" in script_content
 
     def test_generate_binary_install_command_no_binaries(self) -> None:
         """Test binary command generation when no binaries."""
@@ -350,9 +361,11 @@ class NotAPlugin:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
-        generator._generate_binary_install_command(hooks)
-        # No binaries should mean no new commands added
+        mounted_files: List = []
+        generator._generate_binary_install_command(hooks, mounted_files)
+        # No binaries should mean no new commands or files added
         assert len(hooks["before_init"]) == 0
+        assert len(mounted_files) == 0
 
     def test_generate_binary_install_command_missing_urls(self) -> None:
         """Test binary command generation with missing URLs."""
@@ -369,8 +382,9 @@ class NotAPlugin:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
+        mounted_files: List = []
         with pytest.raises(ValueError, match="must have at least one download URL"):
-            generator._generate_binary_install_command(hooks)
+            generator._generate_binary_install_command(hooks, mounted_files)
 
     def test_get_plugin_policies(self) -> None:
         """Test policy extraction."""
@@ -398,37 +412,50 @@ class NotAPlugin:
         assert webhooks[0].endpoint == "https://webhook.example.com"
 
     @patch("os.path.exists")
-    @patch("builtins.open", new_callable=mock_open, read_data="requirements content")
-    def test_get_plugin_contexts_with_requirements(
-        self, mock_file: Mock, mock_exists: Mock
-    ) -> None:
+    def test_get_plugin_contexts_with_requirements(self, mock_exists: Mock) -> None:
         """Test context generation with requirements.txt."""
         mock_exists.side_effect = (
             lambda path: path == "requirements.txt" or "plugin.py" in path
         )
 
-        generator = PluginGenerator(self.test_plugin_path)
-        generator.plugin_class = PluginExample
-        generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
-        generator.config = {
-            "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
-            "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
-        }
+        # Mock specific file contents with a custom open function
+        original_open = open
 
-        contexts = generator.get_plugin_contexts()
+        def mock_open_func(filename: str, *args: Any, **kwargs: Any) -> Any:
+            if filename == "requirements.txt":
+                from io import StringIO
+
+                return StringIO("requirements content")
+            elif "plugin.py" in filename:
+                from io import StringIO
+
+                return StringIO("plugin content")
+            else:
+                return original_open(filename, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open_func):
+            generator = PluginGenerator(self.test_plugin_path)
+            generator.plugin_class = PluginExample
+            generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
+            generator.config = {
+                "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+                "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
+            }
+
+            contexts = generator.get_plugin_contexts()
 
         assert len(contexts) == 1
         context = contexts[0]
 
-        # Should have before_init hooks for venv setup
+        # Should have before_init hooks with mkdir command
         assert context.hooks is not None
         assert "before_init" in context.hooks
-        venv_command = None
+        mkdir_command = None
         for cmd in context.hooks["before_init"]:
-            if "python -m venv" in cmd:
-                venv_command = cmd
+            if "mkdir -p" in cmd:
+                mkdir_command = cmd
                 break
-        assert venv_command is not None
+        assert mkdir_command is not None
 
         # Should have requirements.txt as mounted file
         assert context.mounted_files is not None
@@ -440,26 +467,44 @@ class NotAPlugin:
         assert req_file is not None
         assert req_file.content == "requirements content"
 
+        # Should have plugin.py as mounted file
+        plugin_file = None
+        for mf in context.mounted_files:
+            if "plugin.py" in mf.path:
+                plugin_file = mf
+                break
+        assert plugin_file is not None
+        assert plugin_file.content == "plugin content"
+
     @patch("os.path.exists")
-    @patch("builtins.open", new_callable=mock_open, read_data="plugin content")
-    def test_get_plugin_contexts_basic(
-        self, mock_file: Mock, mock_exists: Mock
-    ) -> None:
+    def test_get_plugin_contexts_basic(self, mock_exists: Mock) -> None:
         """Test basic context generation."""
         mock_exists.side_effect = lambda path: "plugin.py" in path
 
-        generator = PluginGenerator(self.test_plugin_path)
-        generator.plugin_class = PluginExample
-        generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
-        generator.config = {
-            "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
-            "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
-        }
+        # Mock specific file contents with a custom open function
+        original_open = open
 
-        with patch.object(
-            generator, "get_available_hooks", return_value=["after_plan"]
-        ):
-            contexts = generator.get_plugin_contexts()
+        def mock_open_func(filename: str, *args: Any, **kwargs: Any) -> Any:
+            if "plugin.py" in filename:
+                from io import StringIO
+
+                return StringIO("plugin content")
+            else:
+                return original_open(filename, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open_func):
+            generator = PluginGenerator(self.test_plugin_path)
+            generator.plugin_class = PluginExample
+            generator.plugin_working_directory = "/mnt/workspace/plugins/test_plugin"
+            generator.config = {
+                "setup_virtual_env": "cd /mnt/workspace/plugins/test_plugin && python -m venv ./venv && source venv/bin/activate && pip install spaceforge",
+                "plugin_mounted_path": "/mnt/workspace/plugins/test_plugin/plugin.py",
+            }
+
+            with patch.object(
+                generator, "get_available_hooks", return_value=["after_plan"]
+            ):
+                contexts = generator.get_plugin_contexts()
 
         assert len(contexts) == 1
         context = contexts[0]
@@ -473,12 +518,24 @@ class NotAPlugin:
                 break
         assert plugin_file is not None
 
-        # Should have spacepy runner hooks
+        # Should have hooks for after_plan (the hook we mocked as available)
         assert context.hooks is not None
         assert "after_plan" in context.hooks
-        runner_command = context.hooks["after_plan"][1]
-        assert "spaceforge runner" in runner_command
-        assert "after_plan" in runner_command
+
+        # Should have a script execution command
+        hook_command = context.hooks["after_plan"][0]
+        assert "chmod +x" in hook_command
+        assert "after_plan.sh" in hook_command
+
+        # Should have a mounted script file for after_plan
+        after_plan_script = None
+        for mf in context.mounted_files:
+            if "after_plan.sh" in mf.path:
+                after_plan_script = mf
+                break
+        assert after_plan_script is not None
+        assert "spaceforge runner" in after_plan_script.content
+        assert "after_plan" in after_plan_script.content
 
     def test_generate_manifest(self) -> None:
         """Test complete manifest generation."""
@@ -647,11 +704,23 @@ class TestPluginGeneratorEdgeCases:
         }
 
         hooks: Dict[str, List[str]] = {"before_init": []}
-        generator._generate_binary_install_command(hooks)
-        command = hooks["before_init"][-1]
+        mounted_files: List = []
+        generator._generate_binary_install_command(hooks, mounted_files)
 
-        assert "https://example.com/binary-amd64" in command
-        assert "arm64 binary not available" in command
+        # Should have added a script execution to hooks
+        assert len(hooks["before_init"]) == 1
+        command = hooks["before_init"][0]
+
+        # Should have added a mounted file with script content
+        assert len(mounted_files) == 1
+        script_content = mounted_files[0].content
+
+        # Check that hook command runs the script
+        assert "chmod +x" in command
+        assert "binary_install_single-arch.sh" in command
+
+        # Check script content contains the binary URL
+        assert "https://example.com/binary-amd64" in script_content
 
     def test_context_merging_with_existing(self) -> None:
         """Test that generated hooks are merged with existing context hooks."""
@@ -684,10 +753,21 @@ class TestPluginGeneratorEdgeCases:
             "plugin_mounted_path": "/mnt/workspace/plugins/existing_hooks/plugin.py",
         }
 
+        # Mock specific file contents with a custom open function
+        original_open = open
+
+        def mock_open_func(filename: str, *args: Any, **kwargs: Any) -> Any:
+            if filename == "/fake/path":
+                from io import StringIO
+
+                return StringIO("fake content")
+            else:
+                return original_open(filename, *args, **kwargs)
+
         with patch("os.path.exists") as mock_exists:
             # Only plugin file exists, not requirements.txt
             mock_exists.side_effect = lambda path: path == "/fake/path"
-            with patch("builtins.open", mock_open(read_data="fake content")):
+            with patch("builtins.open", side_effect=mock_open_func):
                 contexts = generator.get_plugin_contexts()
 
         context = contexts[0]
@@ -703,10 +783,19 @@ class TestPluginGeneratorEdgeCases:
         assert len(existing_files) == 1
 
         # Plugin file should be mounted (path contains the working directory)
-        plugin_files = [
+        # The new implementation creates both plugin.py and hook scripts
+        working_dir_files = [
             mf
             for mf in context.mounted_files
             if "/mnt/workspace/plugins/existing_hooks" in mf.path
+        ]
+        assert (
+            len(working_dir_files) >= 1
+        )  # At least plugin.py, possibly hook scripts too
+
+        # Specifically check for plugin.py
+        plugin_files = [
+            mf for mf in context.mounted_files if mf.path.endswith("plugin.py")
         ]
         assert len(plugin_files) == 1
 
@@ -768,10 +857,21 @@ class TestPluginGeneratorEdgeCases:
             "plugin_mounted_path": "/mnt/workspace/plugins/parametersandvariables/plugin.py",
         }
 
+        # Mock specific file contents with a custom open function
+        original_open = open
+
+        def mock_open_func(filename: str, *args: Any, **kwargs: Any) -> Any:
+            if filename == "/fake/path":
+                from io import StringIO
+
+                return StringIO("fake content")
+            else:
+                return original_open(filename, *args, **kwargs)
+
         with patch("os.path.exists") as mock_exists:
             # Only plugin file exists, not requirements.txt
             mock_exists.side_effect = lambda path: path == "/fake/path"
-            with patch("builtins.open", mock_open(read_data="fake content")):
+            with patch("builtins.open", side_effect=mock_open_func):
                 contexts = generator.get_plugin_contexts()
                 parameters = generator.get_plugin_parameters()
 

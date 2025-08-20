@@ -7,6 +7,7 @@ import os
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 import yaml
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 if TYPE_CHECKING:
     from .plugin import SpaceforgePlugin
@@ -47,6 +48,9 @@ class PluginGenerator:
         self.plugin_instance: Optional[SpaceforgePlugin] = None
         self.plugin_working_directory: Optional[str] = None
         self.config: Optional[Dict[str, Any]] = None
+        self.jinja = Environment(
+            loader=PackageLoader("spaceforge"), autoescape=select_autoescape()
+        )
 
     def load_plugin(self) -> None:
         """Load the plugin class from the specified path."""
@@ -137,14 +141,27 @@ class PluginGenerator:
 
         return hook_methods
 
-    def _update_with_requirements(
-        self, hooks: Dict[str, List[str]], mounted_files: List[MountedFile]
+    def _add_to_mounted_files(
+        self,
+        hooks: Dict[str, List[str]],
+        mounted_files: List[MountedFile],
+        phase: str,
+        filepath: str,
+        filecontent: str,
     ) -> None:
+        file = f"{self.plugin_working_directory}/{filepath}"
+        hooks[phase].append(f"chmod +x {file} && {file}")
+        mounted_files.append(
+            MountedFile(
+                path=f"{self.plugin_working_directory}/{filepath}",
+                content=filecontent,
+                sensitive=False,
+            )
+        )
+
+    def _update_with_requirements(self, mounted_files: List[MountedFile]) -> None:
         """Update the plugin hooks if there is a requirements.txt"""
         if os.path.exists("requirements.txt") and self.config is not None:
-            if self.config["setup_virtual_env"] not in hooks["before_init"]:
-                hooks["before_init"].append(self.config["setup_virtual_env"])
-            hooks["before_init"].append(f"pip install -r requirements.txt")
             # read the requirements.txt file
             with open("requirements.txt", "r") as f:
                 mounted_files.append(
@@ -167,7 +184,9 @@ class PluginGenerator:
                     )
                 )
 
-    def _add_spaceforge_hooks(self, hooks: Dict[str, List[str]]) -> None:
+    def _add_spaceforge_hooks(
+        self, hooks: Dict[str, List[str]], mounted_files: List[MountedFile]
+    ) -> None:
         # Add the spaceforge hook to actually run the plugin
         if self.config is None:
             raise ValueError("Plugin config not set. Call load_plugin() first.")
@@ -178,12 +197,14 @@ class PluginGenerator:
             if hook not in hooks:
                 hooks[hook] = []
 
-            if self.config["setup_virtual_env"] not in hooks[hook]:
-                hooks[hook].append(self.config["setup_virtual_env"])
-
-            hooks[hook].append(
-                f"cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && spaceforge runner --plugin-file {self.config['plugin_mounted_path']} {hook}"
+            directory = os.path.dirname(self.config["plugin_mounted_path"])
+            template = self.jinja.get_template("ensure_spaceforge_and_run.sh.j2")
+            render = template.render(
+                plugin_path=directory,
+                plugin_file=self.config["plugin_mounted_path"],
+                phase=hook,
             )
+            self._add_to_mounted_files(hooks, mounted_files, hook, f"{hook}.sh", render)
 
     def _map_variables_to_parameters(self, contexts: List[Context]) -> None:
         for context in contexts:
@@ -221,10 +242,10 @@ class PluginGenerator:
         }
         mounted_files: List[MountedFile] = []
 
-        self._update_with_requirements(hooks, mounted_files)
+        self._update_with_requirements(mounted_files)
         self._update_with_python_file(mounted_files)
-        self._generate_binary_install_command(hooks)
-        self._add_spaceforge_hooks(hooks)
+        self._generate_binary_install_command(hooks, mounted_files)
+        self._add_spaceforge_hooks(hooks, mounted_files)
 
         # Get the contexts and append the hooks and mounted files to it.
         if self.plugin_class is None:
@@ -256,46 +277,37 @@ class PluginGenerator:
 
         return contexts
 
-    def _generate_binary_install_command(self, hooks: Dict[str, List[str]]) -> None:
+    def _generate_binary_install_command(
+        self, hooks: Dict[str, List[str]], mounted_files: List[MountedFile]
+    ) -> None:
         binaries = self.get_plugin_binaries()
         if binaries is None:
             return None
 
-        binary_cmd = ""
-        if len(binaries) > 0:
-            binary_cmd = f"mkdir -p {static_binary_directory} && cd {static_binary_directory} && "
         for i, binary in enumerate(binaries):
             amd64_url = binary.download_urls.get("amd64", None)
             arm64_url = binary.download_urls.get("arm64", None)
+            binary_path = f"{static_binary_directory}/{binary.name}"
             if amd64_url is None and arm64_url is None:
                 raise ValueError(
                     f"Binary {binary.name} must have at least one download URL defined (amd64 or arm64)"
                 )
 
-            # These commands will only download the binary if they arent already in the path.
-            binary_path = f"{static_binary_directory}/{binary.name}"
-            amd64_download_command = (
-                f"(command -v {binary.name} &> /dev/null || curl {amd64_url} -o {binary_path} -L && chmod +x {binary_path})"
-                if amd64_url is not None
-                else "echo 'amd64 binary not available' && exit 1"
+            template = self.jinja.get_template("binary_install.sh.j2")
+            render = template.render(
+                binary=binary,
+                amd64_url=amd64_url,
+                arm64_url=arm64_url,
+                binary_path=binary_path,
+                static_binary_directory=static_binary_directory,
             )
-            arm64_download_command = (
-                f"(command -v {binary.name} &> /dev/null || curl {arm64_url} -o {binary_path} -L && chmod +x {binary_path})"
-                if arm64_url is not None
-                else "echo 'arm64 binary not available' && exit 1"
+            self._add_to_mounted_files(
+                hooks,
+                mounted_files,
+                "before_init",
+                f"binary_install_{binary.name}.sh",
+                render,
             )
-
-            binary_cmd += (
-                '([[ "$(echo "$(arch)")" == "x86_64" ]] && {} || {}) && '.format(
-                    amd64_download_command, arm64_download_command
-                )
-            )
-
-        if binary_cmd != "":
-            binary_cmd += "cd /mnt/workspace/source/$TF_VAR_spacelift_project_root"
-
-        hooks["before_init"].append(binary_cmd)
-        return None
 
     def get_plugin_binaries(self) -> Optional[List[Binary]]:
         """Get binary definitions from the plugin class."""

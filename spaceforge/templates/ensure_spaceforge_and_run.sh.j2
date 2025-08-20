@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+cd {{plugin_path}}
+
+if [ ! -d "./venv" ]; then
+    python -m venv ./venv
+fi
+. venv/bin/activate
+
+if ! command -v spaceforge; then
+    pip install spaceforge
+fi
+
+if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
+    pip install -r requirements.txt
+    touch .spaceforge_installed_requirements
+fi
+
+cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+spaceforge runner --plugin-file {{plugin_file}} {{phase}}

@@ -131,10 +131,59 @@ contexts:
                   except Exception as e:
                       self.logger.error(f"An unexpected error occurred: {e}")
     sensitive: false
+  - path: /mnt/workspace/plugins/sops/binary_install_sops.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      if command -v sops; then
+          echo "sops is already installed."
+          return
+      fi
+
+      mkdir -p /mnt/workspace/plugins/plugin_binaries
+
+      echo "Installing sops..."
+      mkdir -p /mnt/workspace/plugins/plugin_binaries
+      cd /mnt/workspace/plugins/plugin_binaries
+
+      if [ "$(arch)" = "x86_64" ]; then
+          curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64 -o /mnt/workspace/plugins/plugin_binaries/sops -L
+      else
+          curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.arm64 -o /mnt/workspace/plugins/plugin_binaries/sops -L
+      fi
+
+      chmod +x /mnt/workspace/plugins/plugin_binaries/sops
+      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+    sensitive: false
+  - path: /mnt/workspace/plugins/sops/before_init.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      cd /mnt/workspace/plugins/sops
+
+      if [ ! -d "./venv" ]; then
+          python -m venv ./venv
+      fi
+      . venv/bin/activate
+
+      if ! command -v spaceforge; then
+          pip install spaceforge
+      fi
+
+      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
+          pip install -r requirements.txt
+          touch .spaceforge_installed_requirements
+      fi
+
+      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      spaceforge runner --plugin-file /mnt/workspace/plugins/sops/plugin.py before_init
+    sensitive: false
   hooks:
     before_init:
     - mkdir -p /mnt/workspace/plugins/sops
-    - cd /mnt/workspace/plugins/sops && python -m venv ./venv && source venv/bin/activate && pip install spaceforge
-    - pip install -r requirements.txt
-    - mkdir -p /mnt/workspace/plugins/plugin_binaries && cd /mnt/workspace/plugins/plugin_binaries && ([[ "$(echo "$(arch)")" == "x86_64" ]] && curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64 -o /mnt/workspace/plugins/plugin_binaries/sops -L && chmod +x /mnt/workspace/plugins/plugin_binaries/sops || curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.arm64 -o /mnt/workspace/plugins/plugin_binaries/sops -L && chmod +x /mnt/workspace/plugins/plugin_binaries/sops) && cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-    - cd /mnt/workspace/source/$TF_VAR_spacelift_project_root && python -m spaceforge runner --plugin-file /mnt/workspace/plugins/sops/plugin.py before_init
+    - chmod +x /mnt/workspace/plugins/sops/binary_install_sops.sh && /mnt/workspace/plugins/sops/binary_install_sops.sh
+    - chmod +x /mnt/workspace/plugins/sops/before_init.sh && /mnt/workspace/plugins/sops/before_init.sh

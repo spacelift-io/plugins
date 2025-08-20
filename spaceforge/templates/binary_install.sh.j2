@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -e
+
+if command -v {{binary.name}}; then
+    echo "{{binary.name}} is already installed."
+    return
+fi
+
+mkdir -p {{static_binary_directory}}
+
+echo "Installing {{binary.name}}..."
+mkdir -p {{static_binary_directory}}
+cd {{static_binary_directory}}
+
+if [ "$(arch)" = "x86_64" ]; then
+    curl {{amd64_url}} -o {{binary_path}} -L
+else
+    curl {{arm64_url}} -o {{binary_path}} -L
+fi
+
+chmod +x {{binary_path}}
+cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
