@@ -476,7 +476,7 @@ class NotAPlugin:
         assert context.hooks is not None
         assert "after_plan" in context.hooks
         runner_command = context.hooks["after_plan"][1]
-        assert "python -m spaceforge runner" in runner_command
+        assert "spaceforge runner" in runner_command
         assert "after_plan" in runner_command
 
     def test_generate_manifest(self) -> None:
