@@ -112,8 +112,7 @@ class SpaceforgePlugin(ABC):
 
     def use_user_token(self, id: str, token: str) -> None:
         headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._api_token}",
+            "Content-Type": "application/json"
         }
 
         query = """
