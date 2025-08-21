@@ -2,6 +2,7 @@
 
 set -e
 
+export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 if command -v {{binary.name}}; then
     echo "{{binary.name}} is already installed."
     return
