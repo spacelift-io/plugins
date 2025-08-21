@@ -206,6 +206,7 @@ class SpaceforgePlugin(ABC):
             headers,
         )
 
+        self.logger.debug(f"Sending request to url: {self.spacelift_domain}")
         try:
             with urllib.request.urlopen(req) as response:
                 resp: Dict[str, Any] = json.loads(response.read().decode("utf-8"))
@@ -276,6 +277,7 @@ class SpaceforgePlugin(ABC):
             method="POST",
         )
 
+        self.logger.debug(f"Sending request to url: {self._spacelift_markdown_endpoint}")
         try:
             with urllib.request.urlopen(req) as response:
                 if response.status != 200:
@@ -309,6 +311,7 @@ class SpaceforgePlugin(ABC):
             method="PUT",
         )
 
+        self.logger.debug(f"Sending request to url: {signed_url}")
         try:
             with urllib.request.urlopen(req) as put_response:
                 if put_response.status != 200:
