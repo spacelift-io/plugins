@@ -198,7 +198,7 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
                             markdown += f"- File: {match['fileName']}, Line: {match['lineNumber']}\n"
                     markdown += "\n"
             if "reportUrl" in stdout_json:
-                markdown += f"<a href=\"{stdout_json['reportUrl']}\" rel=\"noopener noreferrer\">View Report</a>\n"
+                markdown += f"[View Report]({stdout_json['reportUrl']})\n"
             result = self.send_markdown(markdown)
             if not result:
                 self.logger.error("Failed to send Wiz CLI output to spacelift")
