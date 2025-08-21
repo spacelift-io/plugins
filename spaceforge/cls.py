@@ -202,4 +202,7 @@ if __name__ == "__main__":
 
     from pydantic import TypeAdapter
 
-    print(json.dumps(TypeAdapter(PluginManifest).json_schema(), indent=2))
+    schema = TypeAdapter(PluginManifest).json_schema()
+    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
+
+    print(json.dumps(schema, indent=2))
