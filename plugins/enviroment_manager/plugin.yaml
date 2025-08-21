@@ -104,6 +104,32 @@ contexts:
   description: Environment Manager Plugin
   env: []
   mounted_files:
+  - path: __environment_manager.tf
+    content: |-
+      locals {
+        __env_vars = {
+          for obj in flatten([
+            for stack_id, values in yamldecode(file("${path.module}/vars.yaml")) : [
+              for v in values : {
+                stack_id   = stack_id
+                name       = v.name
+                value      = v.value
+                write_only = v.write_only
+              }
+            ]
+          ]) : "${obj.stack_id}_${obj.name}" => obj
+        }
+      }
+
+      resource "spacelift_environment_variable" "__this" {
+        for_each = local.__env_vars
+
+        stack_id   = each.value.stack_id
+        name       = each.value.name
+        value      = each.value.value
+        write_only = each.value.write_only
+      }
+    sensitive: false
   - path: /mnt/workspace/plugins/environment manager/requirements.txt
     content: pyyaml==6.0.2
     sensitive: false
@@ -218,10 +244,19 @@ contexts:
           __version__ = "1.0.0"
           __author__ = "Spacelift Team"
 
-          __mounted_files__ = [
-              MountedFile(
-                  path="__environment_manager.tf",
-                  content="""
+          __contexts__ = [
+              Context(
+                  name_prefix="Environment Manager",
+                  description="Environment Manager Plugin",
+                  hooks = {
+                      "before_init": [
+                          "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
+                      ]
+                  },
+                  mounted_files=[
+                      MountedFile(
+                          path="__environment_manager.tf",
+                          content="""
       locals {
         __env_vars = {
           for obj in flatten([
@@ -246,18 +281,8 @@ contexts:
         write_only = each.value.write_only
       }
                   """
-              )
-          ]
-
-          __contexts__ = [
-              Context(
-                  name_prefix="Environment Manager",
-                  description="Environment Manager Plugin",
-                  hooks = {
-                      "before_init": [
-                          "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
-                      ]
-                  }
+                      )
+                  ]
               )
           ]
 

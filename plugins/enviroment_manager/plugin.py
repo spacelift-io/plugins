@@ -107,10 +107,19 @@ The above configuration will create the following in a plan:
     __version__ = "1.0.0"
     __author__ = "Spacelift Team"
 
-    __mounted_files__ = [
-        MountedFile(
-            path="__environment_manager.tf",
-            content="""
+    __contexts__ = [
+        Context(
+            name_prefix="Environment Manager",
+            description="Environment Manager Plugin",
+            hooks = {
+                "before_init": [
+                    "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
+                ]
+            },
+            mounted_files=[
+                MountedFile(
+                    path="__environment_manager.tf",
+                    content="""
 locals {
   __env_vars = {
     for obj in flatten([
@@ -135,18 +144,8 @@ resource "spacelift_environment_variable" "__this" {
   write_only = each.value.write_only
 }
             """
-        )
-    ]
-
-    __contexts__ = [
-        Context(
-            name_prefix="Environment Manager",
-            description="Environment Manager Plugin",
-            hooks = {
-                "before_init": [
-                    "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
-                ]
-            }
+                )
+            ]
         )
     ]
 

@@ -276,7 +276,7 @@ class PluginGenerator:
 
         # Add the hooks and mounted files to the first context
         merge(contexts[0].hooks, hooks, strategy=Strategy.TYPESAFE_ADDITIVE)
-        contexts[0].mounted_files.extend(mounted_files)
+        contexts[0].mounted_files += mounted_files
 
         self._map_variables_to_parameters(contexts)
 
