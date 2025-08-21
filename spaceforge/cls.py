@@ -145,7 +145,7 @@ class Webhook:
 
     name_prefix: str
     endpoint: str
-    secretFromParameter: str
+    secretFromParameter: Optional[str] = optional_field
     labels: Optional[List[str]] = optional_field
 
 

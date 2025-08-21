@@ -260,8 +260,15 @@
           "type": "string"
         },
         "secretFromParameter": {
-          "title": "Secretfromparameter",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Secretfromparameter"
         },
         "labels": {
           "anyOf": [
@@ -280,8 +287,7 @@
       },
       "required": [
         "name_prefix",
-        "endpoint",
-        "secretFromParameter"
+        "endpoint"
       ],
       "title": "Webhook",
       "type": "object"
