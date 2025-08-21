@@ -287,8 +287,8 @@ class SpaceforgePlugin(ABC):
                 headers = resp["headers"]
                 headers["Content-Type"] = "text/markdown"
                 headers["Content-Length"] = str(len(markdown))
-        except urllib.request.HTTPError as e:
-            self.logger.error(f"HTTP error occurred: {e.code} - {e.reason}")
+        except Exception as e:
+            self.logger.error(f"HTTP error occurred: {e}")
             return False
 
         # Now we upload the markdown content to the signed URL
@@ -299,13 +299,18 @@ class SpaceforgePlugin(ABC):
             method="PUT",
         )
 
-        with urllib.request.urlopen(req) as put_response:
-            if put_response.status != 200:
-                self.logger.error(
-                    f"Error uploading markdown content: {put_response.status}"
-                )
-                return False
-            self.logger.debug("Markdown content uploaded successfully.")
+        try:
+            with urllib.request.urlopen(req) as put_response:
+                if put_response.status != 200:
+                    self.logger.error(
+                        f"Error uploading markdown content: {put_response.status}"
+                    )
+                    return False
+                self.logger.debug("Markdown content uploaded successfully.")
+        except Exception as e:
+            self.logger.error(f"HTTP error occurred during upload: {e}")
+            return False
+
         return True
 
     def add_to_policy_input(self, input_name: str, data: Dict[str, Any]) -> None:
