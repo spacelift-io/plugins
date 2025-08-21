@@ -354,7 +354,7 @@ class SpaceforgePlugin(ABC):
                 signed_url = resp["url"]
                 headers = resp["headers"]
                 headers["Content-Type"] = "text/markdown"
-                headers["Content-Length"] = str(len(markdown))
+                headers["Content-Length"] = str(len(markdown.encode("utf-8")))
         except HTTPError as e:
             self.logger.error(f"HTTP error occurred: ({e.code}) {e.reason} {e.msg}")
             return False
