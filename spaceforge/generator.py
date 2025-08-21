@@ -84,7 +84,8 @@ class PluginGenerator:
         self.plugin_class = plugin_class
         self.plugin_instance = plugin_class()
         self.plugin_working_directory = (
-            "/mnt/workspace/plugins/" + plugin_class.__plugin_name__.lower()
+            "/mnt/workspace/plugins/"
+            + plugin_class.__plugin_name__.lower().replace(" ", "_")
         )
         self.config = {
             "setup_virtual_env": (

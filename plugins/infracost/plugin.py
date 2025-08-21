@@ -6,7 +6,7 @@ class InfracostPlugin(SpaceforgePlugin):
     """
 
     # Plugin metadata
-    __plugin_name__ = "infracost"
+    __plugin_name__ = "Infracost"
     __labels__ = ["cost estimation", "infrastructure"]
     __version__ = "1.0.0"
     __author__ = "Spacelift Team"

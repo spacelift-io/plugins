@@ -23,7 +23,7 @@ Samples of these policies are included with the plugin.
     """
 
     # Plugin metadata
-    __plugin_name__ = "wiz"
+    __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
     __version__ = "1.0.0"
     __author__ = "Spacelift Team"

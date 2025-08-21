@@ -1,4 +1,4 @@
-name: sops
+name: Sops
 version: 1.0.0
 description: |-
   # Plugin Sops
@@ -35,7 +35,7 @@ labels:
 - encryption
 contexts:
 - name_prefix: sops
-  description: Main context for sops
+  description: Main context for Sops
   env: []
   mounted_files:
   - path: /mnt/workspace/plugins/sops/requirements.txt
@@ -84,7 +84,7 @@ contexts:
           """
 
           # Plugin metadata
-          __plugin_name__ = "sops"
+          __plugin_name__ = "Sops"
           __labels__ = ["secrets management", "encryption"]
           __version__ = "1.0.0"
           __author__ = "Spacelift Team"

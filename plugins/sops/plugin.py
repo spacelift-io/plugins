@@ -37,7 +37,7 @@ secrets:
     """
 
     # Plugin metadata
-    __plugin_name__ = "sops"
+    __plugin_name__ = "Sops"
     __labels__ = ["secrets management", "encryption"]
     __version__ = "1.0.0"
     __author__ = "Spacelift Team"

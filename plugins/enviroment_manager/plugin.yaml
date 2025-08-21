@@ -130,10 +130,10 @@ contexts:
         write_only = each.value.write_only
       }
     sensitive: false
-  - path: /mnt/workspace/plugins/environment manager/requirements.txt
+  - path: /mnt/workspace/plugins/environment_manager/requirements.txt
     content: pyyaml==6.0.2
     sensitive: false
-  - path: /mnt/workspace/plugins/environment manager/plugin.py
+  - path: /mnt/workspace/plugins/environment_manager/plugin.py
     content: |-
       from spaceforge import SpaceforgePlugin, MountedFile, Context
 
@@ -384,13 +384,13 @@ contexts:
               # Trigger stack previews
               self.trigger_stack_previews(runtime_config)
     sensitive: false
-  - path: /mnt/workspace/plugins/environment manager/before_init.sh
+  - path: /mnt/workspace/plugins/environment_manager/before_init.sh
     content: |-
       #!/bin/sh
 
       set -e
 
-      cd /mnt/workspace/plugins/environment manager
+      cd /mnt/workspace/plugins/environment_manager
 
       if [ ! -d "./venv" ]; then
           python -m venv ./venv
@@ -407,10 +407,10 @@ contexts:
       fi
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge runner --plugin-file /mnt/workspace/plugins/environment manager/plugin.py before_init
+      spaceforge runner --plugin-file /mnt/workspace/plugins/environment_manager/plugin.py before_init
     sensitive: false
   hooks:
     before_init:
     - mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf
-    - mkdir -p /mnt/workspace/plugins/environment manager
-    - chmod +x /mnt/workspace/plugins/environment manager/before_init.sh && /mnt/workspace/plugins/environment manager/before_init.sh
+    - mkdir -p /mnt/workspace/plugins/environment_manager
+    - chmod +x /mnt/workspace/plugins/environment_manager/before_init.sh && /mnt/workspace/plugins/environment_manager/before_init.sh

@@ -1,4 +1,4 @@
-name: infracost
+name: Infracost
 version: 1.0.0
 description: A plugin for integrating with Infracost to estimate costs of infrastructure changes.
 author: Spacelift Team
@@ -29,7 +29,7 @@ contexts:
           """
 
           # Plugin metadata
-          __plugin_name__ = "infracost"
+          __plugin_name__ = "Infracost"
           __labels__ = ["cost estimation", "infrastructure"]
           __version__ = "1.0.0"
           __author__ = "Spacelift Team"
