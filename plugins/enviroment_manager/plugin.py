@@ -255,7 +255,7 @@ resource "spacelift_environment_variable" "__this" {
             if "errors" in response:
                 self.logger.error(f"Error triggering stack preview for {stack_id}:", response["errors"])
             else:
-                url = f"https://{self.spacelift_domain}/stack/{stack_id}/run/{response['data']['runTrigger']['id']}"
+                url = f"{self.spacelift_domain}/stack/{stack_id}/run/{response['data']['runTrigger']['id']}"
                 markdown.append(f"- Triggered [stack preview]({url}) for {stack_id} with commit {tracked_commit}.")
 
         if len(markdown) > 0:
