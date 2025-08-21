@@ -21,7 +21,7 @@
 #
 #         # Assert
 #         assert plugin._api_token is False
-#         assert plugin.spacelift_domain is False
+#         assert plugin._api_endpoint is False
 #         assert plugin._api_enabled is False
 #         assert plugin._workspace_root == os.getcwd()
 #         assert isinstance(plugin.logger, logging.Logger)
@@ -36,7 +36,7 @@
 #
 #         # Assert
 #         assert plugin._api_token == "test_token"
-#         assert plugin.spacelift_domain == "https://test.spacelift.io"
+#         assert plugin._api_endpoint == "https://test.spacelift.io"
 #         assert plugin._api_enabled is True
 #         assert plugin._workspace_root == os.getcwd()
 #
@@ -53,7 +53,7 @@
 #             plugin = SpaceforgePlugin()
 #
 #         # Assert
-#         assert plugin.spacelift_domain == "https://test.spacelift.io"
+#         assert plugin._api_endpoint == "https://test.spacelift.io"
 #         assert plugin._api_enabled is True
 #
 #     def test_should_disable_api_when_domain_has_no_https_prefix(self) -> None:
@@ -69,7 +69,7 @@
 #             plugin = SpaceforgePlugin()
 #
 #         # Assert
-#         assert plugin.spacelift_domain == "test.spacelift.io"
+#         assert plugin._api_endpoint == "test.spacelift.io"
 #         assert plugin._api_enabled is False
 #
 #     def test_should_disable_api_when_only_token_provided(self) -> None:
@@ -271,7 +271,7 @@
 #         plugin = SpaceforgePlugin()
 #         plugin._api_enabled = True
 #         plugin._api_token = "test_token"
-#         plugin.spacelift_domain = "https://test.spacelift.io"
+#         plugin._api_endpoint = "https://test.spacelift.io"
 #
 #         expected_data = {"data": {"test": "result"}}
 #         mock_api_response.read.return_value = json.dumps(expected_data).encode("utf-8")
@@ -305,7 +305,7 @@
 #         plugin = SpaceforgePlugin()
 #         plugin._api_enabled = True
 #         plugin._api_token = "test_token"
-#         plugin.spacelift_domain = "https://test.spacelift.io"
+#         plugin._api_endpoint = "https://test.spacelift.io"
 #
 #         mock_response_data = {"data": {"test": "result"}}
 #         mock_response = Mock()
@@ -331,7 +331,7 @@
 #         plugin = SpaceforgePlugin()
 #         plugin._api_enabled = True
 #         plugin._api_token = "test_token"
-#         plugin.spacelift_domain = "https://test.spacelift.io"
+#         plugin._api_endpoint = "https://test.spacelift.io"
 #
 #         mock_response_data = {"errors": [{"message": "Test error"}]}
 #         mock_response = Mock()
