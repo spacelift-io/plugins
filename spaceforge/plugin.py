@@ -277,7 +277,9 @@ class SpaceforgePlugin(ABC):
             method="POST",
         )
 
-        self.logger.debug(f"Sending request to url: {self._spacelift_markdown_endpoint}")
+        self.logger.debug(
+            f"Sending request to url: {self._spacelift_markdown_endpoint}"
+        )
         try:
             with urllib.request.urlopen(req) as response:
                 if response.status != 200:
