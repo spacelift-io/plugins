@@ -111,9 +111,7 @@ class SpaceforgePlugin(ABC):
         return logger
 
     def use_user_token(self, id: str, token: str) -> None:
-        headers = {
-            "Content-Type": "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
 
         query = """
         mutation requestApiKey($id: ID!, $secret: String!){
