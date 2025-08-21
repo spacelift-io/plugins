@@ -36,21 +36,21 @@ class SpaceforgePlugin(ABC):
         self.logger = self._setup_logger()
 
         self._api_token = os.environ.get("SPACELIFT_API_TOKEN") or False
-        self._spacelift_domain = (
+        self.spacelift_domain = (
             os.environ.get("TF_VAR_spacelift_graphql_endpoint") or False
         )
-        self._api_enabled = bool(self._api_token and self._spacelift_domain)
+        self._api_enabled = bool(self._api_token and self.spacelift_domain)
         self._workspace_root = os.getcwd()
         self._spacelift_markdown_endpoint = None
 
         # This should be the last thing we do in the constructor
         # because we set api_enabled to false if the domain is set up incorrectly.
-        if self._spacelift_domain and isinstance(self._spacelift_domain, str):
+        if self.spacelift_domain and isinstance(self.spacelift_domain, str):
             # this must occur after we check if spacelift domain is false
             # because the domain could be set but not start with https://
-            if self._spacelift_domain.startswith("https://"):
-                if self._spacelift_domain.endswith("/"):
-                    self._spacelift_domain = self._spacelift_domain[:-1]
+            if self.spacelift_domain.startswith("https://"):
+                if self.spacelift_domain.endswith("/"):
+                    self.spacelift_domain = self.spacelift_domain[:-1]
             else:
                 self.logger.warning(
                     "SPACELIFT_DOMAIN does not start with https://, api calls will fail."
@@ -58,7 +58,7 @@ class SpaceforgePlugin(ABC):
                 self._api_enabled = False
 
             if self._api_enabled:
-                self._spacelift_markdown_endpoint = self._spacelift_domain.replace(
+                self._spacelift_markdown_endpoint = self.spacelift_domain.replace(
                     "/graphql", "/worker/plugin_logs_url"
                 )
 
@@ -200,7 +200,7 @@ class SpaceforgePlugin(ABC):
             data["variables"] = variables
 
         req = urllib.request.Request(
-            self._spacelift_domain,  # type: ignore[arg-type]
+            self.spacelift_domain,  # type: ignore[arg-type]
             json.dumps(data).encode("utf-8"),
             headers,
         )

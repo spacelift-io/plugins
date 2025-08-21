@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 import yaml
 from jinja2 import Environment, PackageLoader, select_autoescape
+from mergedeep import Strategy, merge  # type: ignore
 
 if TYPE_CHECKING:
     from .plugin import SpaceforgePlugin
@@ -270,7 +271,7 @@ class PluginGenerator:
             contexts[0].env = []
 
         # Add the hooks and mounted files to the first context
-        contexts[0].hooks.update(hooks)
+        merge(contexts[0].hooks, hooks, strategy=Strategy.TYPESAFE_ADDITIVE)
         contexts[0].mounted_files.extend(mounted_files)
 
         self._map_variables_to_parameters(contexts)

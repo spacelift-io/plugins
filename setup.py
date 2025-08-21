@@ -44,6 +44,7 @@ setup(
         "click>=8.0.0",
         "pydantic>=2.11.7",
         "Jinja2>=3.1.0",
+        "mergedeep>=1.3.4",
     ],
     extras_require={
         "dev": [

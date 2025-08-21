@@ -1,0 +1,391 @@
+name: Environment Manager
+version: 1.0.0
+description: |-
+  # Spacelift Environment Variable Manager
+  This plugin allows you to manage Spacelift environment variables using a centralized YAML configuration file for multiple stacks.
+
+  ## Features
+  - Centralized management of environment variables across multiple stacks.
+  - Supports sensitive variables.
+  - Preview of environment variable changes across stacks before applying changes here.
+
+  **Hint:** Use this in combination with the `sops` plugin to manage secrets in your environment variables.
+
+  ## Usage
+  Add this plugin to an **administrative** stack in your Spacelift account, the stack **must** have the `Spacelift` OpenTofu/Terraform provider configured.
+  example:
+  ```hcl
+  terraform {
+    required_providers {
+      spacelift = {
+        source  = "spacelift-io/spacelift"
+        version = "~> 1.0"
+      }
+    }
+  }
+
+  provider "spacelift" {}
+  ```
+
+  1. **YAML Configuration**: Environment variables are defined in `vars.yaml` using the following structure:
+     ```yaml
+     stack-id:
+       - name: VARIABLE_NAME
+         value: variable_value
+         sensitive: false
+     ```
+
+  2. **Terraform Processing**: The main Terraform configuration:
+     - Reads and parses the YAML file using `yamldecode(file("vars.yaml"))`
+     - Flattens the structure into a list of variables with their associated stack IDs
+     - Creates `spacelift_environment_variable` resources for each variable
+
+  3. **Stack Association**: Variables are automatically associated with their respective stacks based on the stack ids defined in the YAML file.
+
+  **note:** when using this plugin, if you open a PR to your variables file, the changes of the child stacks will be previewed and linked.
+
+  ## Example Configuration
+
+  ### vars.yaml
+  ```yaml
+  env-var-yaml-1:
+    - name: KUBECONFIG
+      value: /home/joey/.kube/config
+      sensitive: false
+
+  env-var-yaml-2:
+    - name: AWS_PROFILE
+      value: test
+      sensitive: false
+    - name: MY_AWESOME_SECRET
+      value: HelloWorld
+      sensitive: true
+  ```
+
+  The above configuration will create the following in a plan:
+
+  ```ansi
+  # spacelift_environment_variable.this["env-var-yaml-1_KUBECONFIG"] will be created
+    + resource "spacelift_environment_variable" "this" {
+        + checksum   = (known after apply)
+        + id         = (known after apply)
+        + name       = "KUBECONFIG"
+        + stack_id   = "env-var-yaml-1"
+        + value      = (sensitive value)
+        + write_only = false
+      }
+
+    # spacelift_environment_variable.this["env-var-yaml-2_AWS_PROFILE"] will be created
+    + resource "spacelift_environment_variable" "this" {
+        + checksum   = (known after apply)
+        + id         = (known after apply)
+        + name       = "AWS_PROFILE"
+        + stack_id   = "env-var-yaml-2"
+        + value      = (sensitive value)
+        + write_only = false
+      }
+
+    # spacelift_environment_variable.this["env-var-yaml-2_MY_AWESOME_SECRET"] will be created
+    + resource "spacelift_environment_variable" "this" {
+        + checksum   = (known after apply)
+        + id         = (known after apply)
+        + name       = "MY_AWESOME_SECRET"
+        + stack_id   = "env-var-yaml-2"
+        + value      = (sensitive value)
+        + write_only = true
+      }
+  ```
+author: Spacelift Team
+labels:
+- management
+- infrastructure
+contexts:
+- name_prefix: Environment Manager
+  description: Environment Manager Plugin
+  env: []
+  mounted_files:
+  - path: /mnt/workspace/plugins/environment manager/requirements.txt
+    content: pyyaml==6.0.2
+    sensitive: false
+  - path: /mnt/workspace/plugins/environment manager/plugin.py
+    content: |-
+      from spaceforge import SpaceforgePlugin, MountedFile, Context
+
+      import yaml
+      import os
+
+      class EnvironmentManagerPlugin(SpaceforgePlugin):
+          """
+      # Spacelift Environment Variable Manager
+      This plugin allows you to manage Spacelift environment variables using a centralized YAML configuration file for multiple stacks.
+
+      ## Features
+      - Centralized management of environment variables across multiple stacks.
+      - Supports sensitive variables.
+      - Preview of environment variable changes across stacks before applying changes here.
+
+      **Hint:** Use this in combination with the `sops` plugin to manage secrets in your environment variables.
+
+      ## Usage
+      Add this plugin to an **administrative** stack in your Spacelift account, the stack **must** have the `Spacelift` OpenTofu/Terraform provider configured.
+      example:
+      ```hcl
+      terraform {
+        required_providers {
+          spacelift = {
+            source  = "spacelift-io/spacelift"
+            version = "~> 1.0"
+          }
+        }
+      }
+
+      provider "spacelift" {}
+      ```
+
+      1. **YAML Configuration**: Environment variables are defined in `vars.yaml` using the following structure:
+         ```yaml
+         stack-id:
+           - name: VARIABLE_NAME
+             value: variable_value
+             sensitive: false
+         ```
+
+      2. **Terraform Processing**: The main Terraform configuration:
+         - Reads and parses the YAML file using `yamldecode(file("vars.yaml"))`
+         - Flattens the structure into a list of variables with their associated stack IDs
+         - Creates `spacelift_environment_variable` resources for each variable
+
+      3. **Stack Association**: Variables are automatically associated with their respective stacks based on the stack ids defined in the YAML file.
+
+      **note:** when using this plugin, if you open a PR to your variables file, the changes of the child stacks will be previewed and linked.
+
+      ## Example Configuration
+
+      ### vars.yaml
+      ```yaml
+      env-var-yaml-1:
+        - name: KUBECONFIG
+          value: /home/joey/.kube/config
+          sensitive: false
+
+      env-var-yaml-2:
+        - name: AWS_PROFILE
+          value: test
+          sensitive: false
+        - name: MY_AWESOME_SECRET
+          value: HelloWorld
+          sensitive: true
+      ```
+
+      The above configuration will create the following in a plan:
+
+      ```ansi
+      # spacelift_environment_variable.this["env-var-yaml-1_KUBECONFIG"] will be created
+        + resource "spacelift_environment_variable" "this" {
+            + checksum   = (known after apply)
+            + id         = (known after apply)
+            + name       = "KUBECONFIG"
+            + stack_id   = "env-var-yaml-1"
+            + value      = (sensitive value)
+            + write_only = false
+          }
+
+        # spacelift_environment_variable.this["env-var-yaml-2_AWS_PROFILE"] will be created
+        + resource "spacelift_environment_variable" "this" {
+            + checksum   = (known after apply)
+            + id         = (known after apply)
+            + name       = "AWS_PROFILE"
+            + stack_id   = "env-var-yaml-2"
+            + value      = (sensitive value)
+            + write_only = false
+          }
+
+        # spacelift_environment_variable.this["env-var-yaml-2_MY_AWESOME_SECRET"] will be created
+        + resource "spacelift_environment_variable" "this" {
+            + checksum   = (known after apply)
+            + id         = (known after apply)
+            + name       = "MY_AWESOME_SECRET"
+            + stack_id   = "env-var-yaml-2"
+            + value      = (sensitive value)
+            + write_only = true
+          }
+      ```
+          """
+
+          # Plugin metadata
+          __plugin_name__ = "Environment Manager"
+          __labels__ = ["management", "infrastructure"]
+          __version__ = "1.0.0"
+          __author__ = "Spacelift Team"
+
+          __mounted_files__ = [
+              MountedFile(
+                  path="__environment_manager.tf",
+                  content="""
+      locals {
+        __env_vars = {
+          for obj in flatten([
+            for stack_id, values in yamldecode(file("${path.module}/vars.yaml")) : [
+              for v in values : {
+                stack_id   = stack_id
+                name       = v.name
+                value      = v.value
+                write_only = v.write_only
+              }
+            ]
+          ]) : "${obj.stack_id}_${obj.name}" => obj
+        }
+      }
+
+      resource "spacelift_environment_variable" "__this" {
+        for_each = local.__env_vars
+
+        stack_id   = each.value.stack_id
+        name       = each.value.name
+        value      = each.value.value
+        write_only = each.value.write_only
+      }
+                  """
+              )
+          ]
+
+          __contexts__ = [
+              Context(
+                  name_prefix="Environment Manager",
+                  description="Environment Manager Plugin",
+                  hooks = {
+                      "before_init": [
+                          "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
+                      ]
+                  }
+              )
+          ]
+
+          def load_yaml_file(self, file_path):
+              """Load YAML file and return parsed content"""
+              try:
+                  with open(file_path, 'r') as file:
+                      return yaml.safe_load(file)
+              except FileNotFoundError:
+                  self.logger.error(f"Error: File {file_path} not found")
+                  exit(1)
+              except yaml.YAMLError as e:
+                  self.logger.error(f"Error parsing YAML: {e}")
+                  exit(1)
+
+          def convert_to_runtime_config(self, yaml_data):
+              """Convert YAML data to Spacelift runtime config format"""
+              runtime_config = {}
+
+              for stack_id, env_vars in yaml_data.items():
+                  if not isinstance(env_vars, list):
+                      self.logger.error(f"Error: Environment variables for stack '{stack_id}' must be a list")
+                      exit(1)
+
+                  runtime_config[stack_id] = {
+                      "environment": {}
+                  }
+
+                  for var in env_vars:
+                      runtime_config[stack_id]["environment"][var["name"]] = var["value"]
+
+              return runtime_config
+
+          def trigger_stack_previews(self, runtime_config: dict):
+              """Trigger stack previews using Spacelift API"""
+
+              markdown = []
+
+              for stack_id, env in runtime_config.items():
+
+                  # Get the current tracked sha from the stack
+                  query = "{ stack(id: \"" + stack_id + "\") { trackedCommit { hash } } }"
+                  response = self.query_api(query)
+                  if "errors" in response:
+                      self.logger.error("Error fetching stack tracked commit:", response["errors"])
+                      continue
+
+                  # Ensure we have a tracked commit
+                  try:
+                      tracked_commit = response["data"]["stack"]["trackedCommit"]["hash"]
+                  except TypeError:
+                      tracked_commit = None
+                  if tracked_commit is None:
+                      self.logger.error(f"Stack {stack_id} has no tracked commit. Skipping.")
+                      continue
+
+                  # Trigger the stack preview with the current tracked commit SHA
+                  query = """
+                  mutation TriggerStackPreview($stack: ID!, $commitSHA: String!, $runtimeConfig: String!) {
+                      runTrigger(stack: $stack, commitSha: $commitSHA, runType: PROPOSED, runtimeConfig: { yaml: $runtimeConfig }) {
+                          id
+                      }
+                  }
+                  """
+
+                  variables = {
+                      "stack": stack_id,
+                      "commitSHA": tracked_commit,
+                      "runtimeConfig": yaml.dump(env)
+                  }
+
+                  response = self.query_api(query, variables)
+                  if "errors" in response:
+                      self.logger.error(f"Error triggering stack preview for {stack_id}:", response["errors"])
+                  else:
+                      url = f"https://{self.spacelift_domain}/stack/{stack_id}/run/{response['data']['runTrigger']['id']}"
+                      markdown.append(f"- Triggered [stack preview]({url}) for {stack_id} with commit {tracked_commit}.")
+
+              if len(markdown) > 0:
+                  mdown = "# Stack Previews Triggered\n\n" + "\n".join(markdown)
+                  success = self.send_markdown(mdown)
+                  if not success:
+                      self.logger.error("Failed to send markdown message with stack previews.")
+                      self.logger.info(mdown)
+
+
+          def before_init(self):
+              # ensure we are in a proposed run
+              if os.getenv("TF_VAR_spacelift_run_type") != "PROPOSED":
+                  # This script should only be run in a proposed run context.
+                  return
+
+              # Load YAML data
+              yaml_data = self.load_yaml_file("vars.yaml")
+
+              # Convert to runtime config
+              runtime_config = self.convert_to_runtime_config(yaml_data)
+
+              # Trigger stack previews
+              self.trigger_stack_previews(runtime_config)
+    sensitive: false
+  - path: /mnt/workspace/plugins/environment manager/before_init.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      cd /mnt/workspace/plugins/environment manager
+
+      if [ ! -d "./venv" ]; then
+          python -m venv ./venv
+      fi
+      . venv/bin/activate
+
+      if ! command -v spaceforge; then
+          pip install spaceforge
+      fi
+
+      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
+          pip install -r requirements.txt
+          touch .spaceforge_installed_requirements
+      fi
+
+      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      spaceforge runner --plugin-file /mnt/workspace/plugins/environment manager/plugin.py before_init
+    sensitive: false
+  hooks:
+    before_init:
+    - mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf
+    - mkdir -p /mnt/workspace/plugins/environment manager
+    - chmod +x /mnt/workspace/plugins/environment manager/before_init.sh && /mnt/workspace/plugins/environment manager/before_init.sh
