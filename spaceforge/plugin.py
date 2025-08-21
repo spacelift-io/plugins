@@ -8,9 +8,9 @@ import logging
 import os
 import subprocess
 import urllib.request
-from urllib.error import HTTPError
 from abc import ABC
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.error import HTTPError
 
 
 class SpaceforgePlugin(ABC):
@@ -210,8 +210,8 @@ class SpaceforgePlugin(ABC):
             with urllib.request.urlopen(req) as response:
                 resp: Dict[str, Any] = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
-            if hasattr(e, 'read'):
-                resp = json.loads(e.read().decode('utf-8'))
+            if hasattr(e, "read"):
+                resp = json.loads(e.read().decode("utf-8"))
             else:
                 # We should not get here, but if we do re-raise the exception
                 self.logger.error(f"HTTP error occurred: ({e.code}) {e.reason} {e.msg}")
@@ -318,7 +318,9 @@ class SpaceforgePlugin(ABC):
                     return False
                 self.logger.debug("Markdown content uploaded successfully.")
         except HTTPError as e:
-            self.logger.error(f"HTTP error occurred during upload: ({e.code}) {e.reason} {e.msg}")
+            self.logger.error(
+                f"HTTP error occurred during upload: ({e.code}) {e.reason} {e.msg}"
+            )
             return False
 
         return True
