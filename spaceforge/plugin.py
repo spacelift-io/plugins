@@ -49,14 +49,14 @@ class SpaceforgePlugin(ABC):
         if self.spacelift_domain and isinstance(self.spacelift_domain, str):
             # this must occur after we check if spacelift domain is false
             # because the domain could be set but not start with https://
-            if self.spacelift_domain.startswith("https://"):
-                if self.spacelift_domain.endswith("/"):
-                    self.spacelift_domain = self.spacelift_domain[:-1]
-            else:
-                self.logger.warning(
-                    "SPACELIFT_DOMAIN does not start with https://, api calls will fail."
-                )
-                self._api_enabled = False
+            # if self.spacelift_domain.startswith("https://"):
+            #     if self.spacelift_domain.endswith("/"):
+            #         self.spacelift_domain = self.spacelift_domain[:-1]
+            # else:
+            #     self.logger.warning(
+            #         "SPACELIFT_DOMAIN does not start with https://, api calls will fail."
+            #     )
+            #     self._api_enabled = False
 
             if self._api_enabled:
                 self._spacelift_markdown_endpoint = self.spacelift_domain.replace(
