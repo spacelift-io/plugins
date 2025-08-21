@@ -145,9 +145,7 @@ class SpaceforgePlugin(ABC):
         Run a CLI command with the given arguments.
 
         Args:
-            command: The command to run
-            *args: Positional arguments for the command
-            **kwargs: Keyword arguments for the command
+            *command: The command to run
             expect_code: Expected return code
             print_output: Whether to print the output to the logger
         """
