@@ -359,6 +359,8 @@ class SpaceforgePlugin(ABC):
             self.logger.error(f"HTTP error occurred: ({e.code}) {e.reason} {e.msg}")
             return False
 
+        self.logger.debug("Markdown to send" + markdown)
+
         # Now we upload the markdown content to the signed URL
         req = urllib.request.Request(
             signed_url,
