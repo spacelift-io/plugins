@@ -2,7 +2,7 @@ from sopsy import Sops, SopsyError
 from pathlib import Path
 import yaml
 
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, Binary
+from spaceforge import SpaceforgePlugin, Binary
 
 class SopsPlugin(SpaceforgePlugin):
     """

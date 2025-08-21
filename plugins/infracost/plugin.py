@@ -1,4 +1,4 @@
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, Binary
+from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy
 
 class InfracostPlugin(SpaceforgePlugin):
     """

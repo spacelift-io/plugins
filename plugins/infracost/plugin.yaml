@@ -21,7 +21,7 @@ contexts:
   mounted_files:
   - path: /mnt/workspace/plugins/infracost/plugin.py
     content: |-
-      from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, Binary
+      from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy
 
       class InfracostPlugin(SpaceforgePlugin):
           """
