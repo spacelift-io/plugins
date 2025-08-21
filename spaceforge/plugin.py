@@ -8,6 +8,7 @@ import logging
 import os
 import subprocess
 import urllib.request
+from urllib.error import HTTPError
 from abc import ABC
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -204,8 +205,17 @@ class SpaceforgePlugin(ABC):
             json.dumps(data).encode("utf-8"),
             headers,
         )
-        with urllib.request.urlopen(req) as response:
-            resp: Dict[str, Any] = json.loads(response.read().decode("utf-8"))
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                resp: Dict[str, Any] = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if hasattr(e, 'read'):
+                resp = json.loads(e.read().decode('utf-8'))
+            else:
+                # We should not get here, but if we do re-raise the exception
+                self.logger.error(f"HTTP error occurred: ({e.code}) {e.reason} {e.msg}")
+                raise e
 
         if "errors" in resp:
             self.logger.error(f"Error: {resp['errors']}")
@@ -287,8 +297,8 @@ class SpaceforgePlugin(ABC):
                 headers = resp["headers"]
                 headers["Content-Type"] = "text/markdown"
                 headers["Content-Length"] = str(len(markdown))
-        except Exception as e:
-            self.logger.error(f"HTTP error occurred: {e}")
+        except HTTPError as e:
+            self.logger.error(f"HTTP error occurred: ({e.code}) {e.reason} {e.msg}")
             return False
 
         # Now we upload the markdown content to the signed URL
@@ -307,8 +317,8 @@ class SpaceforgePlugin(ABC):
                     )
                     return False
                 self.logger.debug("Markdown content uploaded successfully.")
-        except Exception as e:
-            self.logger.error(f"HTTP error occurred during upload: {e}")
+        except HTTPError as e:
+            self.logger.error(f"HTTP error occurred during upload: ({e.code}) {e.reason} {e.msg}")
             return False
 
         return True

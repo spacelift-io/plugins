@@ -149,6 +149,9 @@ resource "spacelift_environment_variable" "__this" {
         )
     ]
 
+    def __init__(self):
+        super().__init__()
+
     def load_yaml_file(self, file_path):
         """Load YAML file and return parsed content"""
         try:
@@ -190,13 +193,13 @@ resource "spacelift_environment_variable" "__this" {
             query = "{ stack(id: \"" + stack_id + "\") { trackedCommit { hash } } }"
             response = self.query_api(query)
             if "errors" in response:
-                self.logger.error("Error fetching stack tracked commit:", response["errors"])
+                self.logger.error(f"Error fetching stack tracked commit: {response['errors']}")
                 continue
 
             # Ensure we have a tracked commit
             try:
                 tracked_commit = response["data"]["stack"]["trackedCommit"]["hash"]
-            except TypeError:
+            except (TypeError, KeyError):
                 tracked_commit = None
             if tracked_commit is None:
                 self.logger.error(f"Stack {stack_id} has no tracked commit. Skipping.")
