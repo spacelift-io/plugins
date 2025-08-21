@@ -186,7 +186,10 @@ class PluginGenerator:
                 )
 
     def _add_spaceforge_hooks(
-        self, hooks: Dict[str, List[str]], mounted_files: List[MountedFile]
+        self,
+        hooks: Dict[str, List[str]],
+        mounted_files: List[MountedFile],
+        has_binaries: bool,
     ) -> None:
         # Add the spaceforge hook to actually run the plugin
         if self.config is None:
@@ -204,6 +207,7 @@ class PluginGenerator:
                 plugin_path=directory,
                 plugin_file=self.config["plugin_mounted_path"],
                 phase=hook,
+                has_binaries=has_binaries,
             )
             self._add_to_mounted_files(hooks, mounted_files, hook, f"{hook}.sh", render)
 
@@ -245,8 +249,8 @@ class PluginGenerator:
 
         self._update_with_requirements(mounted_files)
         self._update_with_python_file(mounted_files)
-        self._generate_binary_install_command(hooks, mounted_files)
-        self._add_spaceforge_hooks(hooks, mounted_files)
+        has_binaries = self._generate_binary_install_command(hooks, mounted_files)
+        self._add_spaceforge_hooks(hooks, mounted_files, has_binaries)
 
         # Get the contexts and append the hooks and mounted files to it.
         if self.plugin_class is None:
@@ -280,10 +284,10 @@ class PluginGenerator:
 
     def _generate_binary_install_command(
         self, hooks: Dict[str, List[str]], mounted_files: List[MountedFile]
-    ) -> None:
+    ) -> bool:
         binaries = self.get_plugin_binaries()
         if binaries is None:
-            return None
+            return False
 
         for i, binary in enumerate(binaries):
             amd64_url = binary.download_urls.get("amd64", None)
@@ -309,6 +313,8 @@ class PluginGenerator:
                 f"binary_install_{binary.name}.sh",
                 render,
             )
+
+        return True
 
     def get_plugin_binaries(self) -> Optional[List[Binary]]:
         """Get binary definitions from the plugin class."""
