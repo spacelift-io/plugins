@@ -9,7 +9,7 @@ import os
 import subprocess
 import urllib.request
 from abc import ABC
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.error import HTTPError
 
 
@@ -43,6 +43,7 @@ class SpaceforgePlugin(ABC):
         self._api_enabled = bool(self._api_token and self.spacelift_domain)
         self._workspace_root = os.getcwd()
         self._spacelift_markdown_endpoint = None
+        self._markdown_endpoint_token = os.environ.get("SPACELIFT_API_TOKEN") or False
 
         # This should be the last thing we do in the constructor
         # because we set api_enabled to false if the domain is set up incorrectly.
@@ -109,9 +110,7 @@ class SpaceforgePlugin(ABC):
 
         return logger
 
-    def use_user_token(
-        self, id: str, token: str, api_query: Callable[[str, None], Dict[str, Any]]
-    ) -> None:
+    def use_user_token(self, id: str, token: str) -> None:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self._api_token}",
@@ -310,13 +309,16 @@ class SpaceforgePlugin(ABC):
             self.logger.info(markdown)
             return True
 
-        if self._spacelift_markdown_endpoint is None:
+        if (
+            self._spacelift_markdown_endpoint is None
+            or not self._markdown_endpoint_token
+        ):
             self.logger.error(
                 'API is not enabled, please export "SPACELIFT_API_TOKEN" and "TF_VAR_spacelift_graphql_endpoint".'
             )
             return False
 
-        headers = {"Authorization": f"Bearer {self._api_token}"}
+        headers = {"Authorization": f"Bearer {self._markdown_endpoint_token}"}
         body = {
             "plugin_name": self.__plugin_name__,
         }
