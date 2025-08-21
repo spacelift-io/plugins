@@ -99,10 +99,27 @@ author: Spacelift Team
 labels:
 - management
 - infrastructure
+parameters:
+- name: Spacelift API Key ID
+  description: The API Key that will trigger the stack previews
+  sensitive: false
+  required: true
+  id: spacelift_api_key_id
+- name: Spacelift API Key Secret
+  description: The API Key Secret that will trigger the stack previews
+  sensitive: true
+  required: true
+  id: spacelift_api_key_secret
 contexts:
 - name_prefix: Environment Manager
   description: Environment Manager Plugin
-  env: []
+  env:
+  - key: SPACELIFT_API_KEY_ID
+    value_from_parameter: spacelift_api_key_id
+    sensitive: false
+  - key: SPACELIFT_API_KEY_SECRET
+    value_from_parameter: spacelift_api_key_secret
+    sensitive: true
   mounted_files:
   - path: __environment_manager.tf
     content: |-
@@ -135,7 +152,7 @@ contexts:
     sensitive: false
   - path: /mnt/workspace/plugins/environment_manager/plugin.py
     content: |-
-      from spaceforge import SpaceforgePlugin, MountedFile, Context
+      from spaceforge import SpaceforgePlugin, MountedFile, Context, Parameter, Variable
 
       import yaml
       import os
@@ -244,6 +261,22 @@ contexts:
           __version__ = "1.0.0"
           __author__ = "Spacelift Team"
 
+          __parameters__ = [
+              Parameter(
+                  name="Spacelift API Key ID",
+                  id="spacelift_api_key_id",
+                  description="The API Key that will trigger the stack previews",
+                  required=True,
+              ),
+              Parameter(
+                  name="Spacelift API Key Secret",
+                  id="spacelift_api_key_secret",
+                  description="The API Key Secret that will trigger the stack previews",
+                  required=True,
+                  sensitive=True
+              ),
+          ]
+
           __contexts__ = [
               Context(
                   name_prefix="Environment Manager",
@@ -253,6 +286,18 @@ contexts:
                           "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
                       ]
                   },
+                  env=[
+                      Variable(
+                          key="SPACELIFT_API_KEY_ID",
+                          value_from_parameter="spacelift_api_key_id",
+                          sensitive=False
+                      ),
+                      Variable(
+                          key="SPACELIFT_API_KEY_SECRET",
+                          value_from_parameter="spacelift_api_key_secret",
+                          sensitive=True
+                      ),
+                  ],
                   mounted_files=[
                       MountedFile(
                           path="__environment_manager.tf",
@@ -356,6 +401,9 @@ contexts:
                       "commitSHA": tracked_commit,
                       "runtimeConfig": yaml.dump(env)
                   }
+
+                  self.use_user_token(os.environ.get("SPACELIFT_API_KEY_ID"),
+                                      os.environ.get("SPACELIFT_API_KEY_SECRET"))
 
                   response = self.query_api(query, variables)
                   if "errors" in response:

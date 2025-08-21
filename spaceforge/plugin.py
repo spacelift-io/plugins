@@ -9,7 +9,7 @@ import os
 import subprocess
 import urllib.request
 from abc import ABC
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.error import HTTPError
 
 
@@ -108,6 +108,60 @@ class SpaceforgePlugin(ABC):
             logger.setLevel(logging.INFO)
 
         return logger
+
+    def use_user_token(
+        self, id: str, token: str, api_query: Callable[[str, None], Dict[str, Any]]
+    ) -> None:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._api_token}",
+        }
+
+        query = """
+        mutation requestApiKey($id: ID!, $secret: String!){
+          apiKeyUser(id: $id, secret: $secret){
+            jwt
+          }
+        }
+        """
+
+        data: Dict[str, Any] = {
+            "query": query,
+            "variables": {"id": id, "secret": token},
+        }
+
+        req = urllib.request.Request(
+            self.spacelift_domain,  # type: ignore[arg-type]
+            json.dumps(data).encode("utf-8"),
+            headers,
+        )
+
+        self.logger.debug(f"Sending request to url: {self.spacelift_domain}")
+        try:
+            with urllib.request.urlopen(req) as response:
+                resp: Dict[str, Any] = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if hasattr(e, "read"):
+                resp = json.loads(e.read().decode("utf-8"))
+            else:
+                # We should not get here, but if we do re-raise the exception
+                self.logger.error(f"HTTP error occurred: ({e.code}) {e.reason} {e.msg}")
+                raise e
+
+        if "errors" in resp:
+            self.logger.error(f"Error: {resp['errors']}")
+            return
+
+        if (
+            "data" in resp
+            and "apiKeyUser" in resp["data"]
+            and "jwt" in resp["data"]["apiKeyUser"]
+        ):
+            self._api_token = resp["data"]["apiKeyUser"]["jwt"]
+            self._api_enabled = True
+            self.logger.debug("Successfully set user token for API calls.")
+        else:
+            self.logger.error(f"API call returned no data: {resp}")
 
     def get_available_hooks(self) -> List[str]:
         """

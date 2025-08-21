@@ -1,4 +1,4 @@
-from spaceforge import SpaceforgePlugin, MountedFile, Context
+from spaceforge import SpaceforgePlugin, MountedFile, Context, Parameter, Variable
 
 import yaml
 import os
@@ -107,6 +107,22 @@ The above configuration will create the following in a plan:
     __version__ = "1.0.0"
     __author__ = "Spacelift Team"
 
+    __parameters__ = [
+        Parameter(
+            name="Spacelift API Key ID",
+            id="spacelift_api_key_id",
+            description="The API Key that will trigger the stack previews",
+            required=True,
+        ),
+        Parameter(
+            name="Spacelift API Key Secret",
+            id="spacelift_api_key_secret",
+            description="The API Key Secret that will trigger the stack previews",
+            required=True,
+            sensitive=True
+        ),
+    ]
+
     __contexts__ = [
         Context(
             name_prefix="Environment Manager",
@@ -116,6 +132,18 @@ The above configuration will create the following in a plan:
                     "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
                 ]
             },
+            env=[
+                Variable(
+                    key="SPACELIFT_API_KEY_ID",
+                    value_from_parameter="spacelift_api_key_id",
+                    sensitive=False
+                ),
+                Variable(
+                    key="SPACELIFT_API_KEY_SECRET",
+                    value_from_parameter="spacelift_api_key_secret",
+                    sensitive=True
+                ),
+            ],
             mounted_files=[
                 MountedFile(
                     path="__environment_manager.tf",
@@ -219,6 +247,9 @@ resource "spacelift_environment_variable" "__this" {
                 "commitSHA": tracked_commit,
                 "runtimeConfig": yaml.dump(env)
             }
+
+            self.use_user_token(os.environ.get("SPACELIFT_API_KEY_ID"),
+                                os.environ.get("SPACELIFT_API_KEY_SECRET"))
 
             response = self.query_api(query, variables)
             if "errors" in response:
