@@ -149,6 +149,9 @@ class Webhook:
     labels: Optional[List[str]] = optional_field
 
 
+PolicyTypes = Literal["PUSH", "PLAN", "TRIGGER", "APPROVAL", "NOTIFICATION"]
+
+
 @pydantic_dataclass
 class Policy:
     """
@@ -162,7 +165,7 @@ class Policy:
     """
 
     name_prefix: str
-    type: str
+    type: PolicyTypes
     body: str
     labels: Optional[List[str]] = optional_field
 

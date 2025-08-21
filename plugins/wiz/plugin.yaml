@@ -125,13 +125,33 @@ contexts:
           __policies__ = [
               Policy(
                   name_prefix="wiz_policy",
-                  type="notification",
+                  type="PLAN",
                   body="""
       package spacelift
 
-      webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
-        input.run_updated.run.type == "TRACKED"
-        input.run_updated.run.marked_unsafe == true
+      max_critical_vulnerabilities := 0
+      max_high_vulnerabilities := 0
+      max_medium_vulnerabilities := 3
+      max_low_vulnerabilities := 10
+
+      deny[sprintf("Too many critical vulnerabilities (%d)", [num])] {
+      	num := input.third_party_metadata.custom.wiz.result.scanStatistics.criticalMatches
+          num > max_critical_vulnerabilities
+      }
+
+      deny[sprintf("Too many high vulnerabilities (%d)", [num])] {
+      	num := input.third_party_metadata.custom.wiz.result.scanStatistics.highMatches
+          num > max_high_vulnerabilities
+      }
+
+      deny[sprintf("Too many medium vulnerabilities (%d)", [num])] {
+      	num := input.third_party_metadata.custom.wiz.result.scanStatistics.mediumMatches
+          num > max_medium_vulnerabilities
+      }
+
+      deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
+      	num := input.third_party_metadata.custom.wiz.result.scanStatistics.lowMatches
+          num > max_low_vulnerabilities
       }
                   """,
                   labels=[
@@ -288,13 +308,33 @@ contexts:
     - chmod +x /mnt/workspace/plugins/wiz/before_plan.sh && /mnt/workspace/plugins/wiz/before_plan.sh
 policies:
 - name_prefix: wiz_policy
-  type: notification
+  type: PLAN
   body: |-
     package spacelift
 
-    webhook[{"endpoint_id": "wiz-alert-endpoint"}] {
-      input.run_updated.run.type == "TRACKED"
-      input.run_updated.run.marked_unsafe == true
+    max_critical_vulnerabilities := 0
+    max_high_vulnerabilities := 0
+    max_medium_vulnerabilities := 3
+    max_low_vulnerabilities := 10
+
+    deny[sprintf("Too many critical vulnerabilities (%d)", [num])] {
+    	num := input.third_party_metadata.custom.wiz.result.scanStatistics.criticalMatches
+        num > max_critical_vulnerabilities
+    }
+
+    deny[sprintf("Too many high vulnerabilities (%d)", [num])] {
+    	num := input.third_party_metadata.custom.wiz.result.scanStatistics.highMatches
+        num > max_high_vulnerabilities
+    }
+
+    deny[sprintf("Too many medium vulnerabilities (%d)", [num])] {
+    	num := input.third_party_metadata.custom.wiz.result.scanStatistics.mediumMatches
+        num > max_medium_vulnerabilities
+    }
+
+    deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
+    	num := input.third_party_metadata.custom.wiz.result.scanStatistics.lowMatches
+        num > max_low_vulnerabilities
     }
   labels:
   - wiz-plugin

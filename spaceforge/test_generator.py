@@ -72,7 +72,7 @@ class PluginExample(SpaceforgePlugin):
     __policies__ = [
         Policy(
             name_prefix="test_policy",
-            type="notification",
+            type="NOTIFICATION",
             body="package test",
             labels=["type:security"],
         )
@@ -396,7 +396,7 @@ class NotAPlugin:
         assert policies is not None
         assert len(policies) == 1
         assert policies[0].name_prefix == "test_policy"
-        assert policies[0].type == "notification"
+        assert policies[0].type == "NOTIFICATION"
         assert policies[0].body == "package test"
 
     def test_get_plugin_webhooks(self) -> None:

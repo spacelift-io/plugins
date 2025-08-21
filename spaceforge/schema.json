@@ -170,6 +170,13 @@
           "type": "string"
         },
         "type": {
+          "enum": [
+            "PUSH",
+            "PLAN",
+            "TRIGGER",
+            "APPROVAL",
+            "NOTIFICATION"
+          ],
           "title": "Type",
           "type": "string"
         },
