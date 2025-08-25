@@ -73,11 +73,11 @@ class PluginRunner:
             return
 
         try:
-            print(f"[SPACEPY] Running hook: {hook_name}")
+            print(f"[SpaceForge] Running hook: {hook_name}")
             method()
-            print(f"[SPACEPY] Hook completed: {hook_name}")
+            print(f"[SpaceForge] Hook completed: {hook_name}")
         except Exception as e:
-            print(f"[SPACEPY] Error running hook '{hook_name}': {e}")
+            print(f"[SpaceForge] Error running hook '{hook_name}': {e}")
             raise
 
 
