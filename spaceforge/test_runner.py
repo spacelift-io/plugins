@@ -170,8 +170,8 @@ class NotAPlugin:
         assert "after_plan" in getattr(runner.plugin_instance, "executed_hooks")
 
         # Verify print statements
-        mock_print.assert_any_call("[SPACEPY] Running hook: after_plan")
-        mock_print.assert_any_call("[SPACEPY] Hook completed: after_plan")
+        mock_print.assert_any_call("[SpaceForge] Running hook: after_plan")
+        mock_print.assert_any_call("[SpaceForge] Hook completed: after_plan")
 
     def test_run_hook_not_found(self) -> None:
         """Test running a hook that doesn't exist."""
@@ -210,7 +210,7 @@ class NotAPlugin:
 
         # Should print error message
         mock_print.assert_any_call(
-            "[SPACEPY] Error running hook 'error_hook': Test error from hook"
+            "[SpaceForge] Error running hook 'error_hook': Test error from hook"
         )
 
     def test_run_hook_multiple_hooks(self) -> None:

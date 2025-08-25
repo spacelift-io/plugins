@@ -61,8 +61,8 @@ class TestRunnerPlugin(SpaceforgePlugin):
         assert hasattr(runner.plugin_instance, "executed_hooks")
         assert "after_plan" in getattr(runner.plugin_instance, "executed_hooks")
 
-        mock_print.assert_any_call("[SPACEPY] Running hook: after_plan")
-        mock_print.assert_any_call("[SPACEPY] Hook completed: after_plan")
+        mock_print.assert_any_call("[SpaceForge] Running hook: after_plan")
+        mock_print.assert_any_call("[SpaceForge] Hook completed: after_plan")
 
     def test_should_print_error_when_hook_method_not_found(
         self, test_plugin_file: str
@@ -125,7 +125,7 @@ class ErrorPlugin(SpaceforgePlugin):
                 runner.run_hook("error_hook")
 
         mock_print.assert_any_call(
-            "[SPACEPY] Error running hook 'error_hook': Test error from hook"
+            "[SpaceForge] Error running hook 'error_hook': Test error from hook"
         )
 
     def test_should_execute_multiple_hooks_maintaining_state(
