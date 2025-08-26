@@ -30,6 +30,41 @@ from .plugin import SpaceforgePlugin
 static_binary_directory = "/mnt/workspace/plugins/plugin_binaries"
 
 
+def _update_context_names_for_priority(contexts: List[Context]) -> List[Context]:
+    if len(contexts) <= 1:
+        return contexts
+
+    # Get unique priority values and sort them
+    priorities = sorted(set(ctx.priority for ctx in contexts))
+
+    # Create mapping from priority to letter prefix
+    priority_to_letter = {}
+
+    for i, priority in enumerate(priorities):
+        if priority == 0:
+            # Priority 0 gets 'Z' (lowest priority = furthest from A)
+            letter = "Z"
+        else:
+            # Higher priority numbers get letters closer to 'A'
+            # Reverse the mapping: higher priority index = closer to A
+            letter_index = max(0, 25 - i)  # Start from Z and work backwards
+            letter = chr(ord("A") + letter_index)
+
+        priority_to_letter[priority] = letter * 5  # Repeat 5 times
+
+    # Update context names
+    for ctx in contexts:
+        # Remove existing prefix if it starts with repeated letters
+        name = ctx.name_prefix
+        if len(name) >= 5 and name[:5].isupper() and len(set(name[:5])) == 1:
+            name = name[5:]
+
+        prefix = priority_to_letter[ctx.priority]
+        ctx.name_prefix = prefix + "-" + name
+
+    return contexts
+
+
 class PluginGenerator:
     """Generates plugin.yaml from a Python plugin class."""
 
@@ -259,10 +294,10 @@ class PluginGenerator:
 
         contexts = getattr(self.plugin_class, "__contexts__", [])
 
-        main_context = None
+        main_context: Optional[Context] = None
         main_context_found = False
         for context in contexts:
-            if context.is_main_context:
+            if context.priority == 0:
                 main_context = context
                 main_context_found = True
                 break
@@ -271,7 +306,6 @@ class PluginGenerator:
             main_context = Context(
                 name_prefix=self.plugin_class.__plugin_name__.lower(),
                 description=f"Main context for {self.plugin_class.__plugin_name__}",
-                is_main_context=True,
             )
 
         if main_context.hooks is None:
@@ -290,6 +324,7 @@ class PluginGenerator:
             contexts.insert(0, main_context)
 
         self._map_variables_to_parameters(contexts)
+        contexts = _update_context_names_for_priority(contexts)
 
         return contexts
 
@@ -390,7 +425,7 @@ class PluginGenerator:
                     field.name: getattr(data, field.name)
                     for field in fields(data)
                     if getattr(data, field.name) is not None
-                    and field.name != "is_main_context"
+                    and field.name != "priority"
                 }
                 return self.represent_dict(filtered_dict)
 

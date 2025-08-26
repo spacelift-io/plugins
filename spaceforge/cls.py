@@ -121,6 +121,7 @@ class Context:
         labels (Optional[List[str]]): Labels associated with the context.
         env (list): List of variables associated with the context.
         hooks (dict): Hooks associated with the context.
+        priority (optional[int]): The priority of the context, contexts with 0 priority run before contexts with 1 priority.
     """
 
     name_prefix: str
@@ -129,7 +130,7 @@ class Context:
     mounted_files: Optional[List[MountedFile]] = optional_field
     hooks: Optional[Dict[HookType, List[str]]] = optional_field
     labels: Optional[List[str]] = optional_field
-    is_main_context: bool = True
+    priority: int = 0
 
 
 @pydantic_dataclass
