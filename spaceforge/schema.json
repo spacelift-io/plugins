@@ -84,6 +84,11 @@
             }
           ],
           "title": "Labels"
+        },
+        "is_main_context": {
+          "default": true,
+          "title": "Is Main Context",
+          "type": "boolean"
         }
       },
       "required": [

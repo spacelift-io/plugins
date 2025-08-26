@@ -129,6 +129,7 @@ class Context:
     mounted_files: Optional[List[MountedFile]] = optional_field
     hooks: Optional[Dict[HookType, List[str]]] = optional_field
     labels: Optional[List[str]] = optional_field
+    is_main_context: bool = True
 
 
 @pydantic_dataclass

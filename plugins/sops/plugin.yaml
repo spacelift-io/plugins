@@ -137,6 +137,7 @@ contexts:
 
       set -e
 
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
       if command -v sops; then
           echo "sops is already installed."
           return
