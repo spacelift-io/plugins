@@ -108,8 +108,6 @@ contexts:
           return
       fi
 
-      mkdir -p /mnt/workspace/plugins/plugin_binaries
-
       echo "Installing envsubst..."
       mkdir -p /mnt/workspace/plugins/plugin_binaries
       cd /mnt/workspace/plugins/plugin_binaries
