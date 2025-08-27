@@ -255,6 +255,7 @@ contexts:
 
       set -e
 
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
       if command -v wizcli; then
           echo "wizcli is already installed."
           return

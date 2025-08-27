@@ -1,7 +1,7 @@
 {
   "$defs": {
     "Context": {
-      "description": "A class to represent a context for a plugin.\n\nAttributes:\n    name_prefix (str): The name of the context, will be appended with a unique ID.\n    description (str): A description of the context.\n    labels (Optional[List[str]]): Labels associated with the context.\n    env (list): List of variables associated with the context.\n    hooks (dict): Hooks associated with the context.",
+      "description": "A class to represent a context for a plugin.\n\nAttributes:\n    name_prefix (str): The name of the context, will be appended with a unique ID.\n    description (str): A description of the context.\n    labels (Optional[List[str]]): Labels associated with the context.\n    env (list): List of variables associated with the context.\n    hooks (dict): Hooks associated with the context.\n    priority (optional[int]): The priority of the context, contexts with 0 priority run before contexts with 1 priority.",
       "properties": {
         "name_prefix": {
           "title": "Name Prefix",
@@ -84,6 +84,11 @@
             }
           ],
           "title": "Labels"
+        },
+        "priority": {
+          "default": 0,
+          "title": "Priority",
+          "type": "integer"
         }
       },
       "required": [
