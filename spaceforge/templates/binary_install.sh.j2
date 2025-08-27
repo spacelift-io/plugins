@@ -8,8 +8,6 @@ if command -v {{binary.name}}; then
     return
 fi
 
-mkdir -p {{static_binary_directory}}
-
 echo "Installing {{binary.name}}..."
 mkdir -p {{static_binary_directory}}
 cd {{static_binary_directory}}

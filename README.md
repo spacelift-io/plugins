@@ -17,7 +17,7 @@ pip install spaceforge
 Create a Python file (e.g., `my_plugin.py`) and inherit from `SpaceforgePlugin`:
 
 ```python
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context
+from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Binary, Policy, Webhook, MountedFile
 import os
 
 class MyPlugin(SpaceforgePlugin):
@@ -25,17 +25,20 @@ class MyPlugin(SpaceforgePlugin):
     __plugin_name__ = "my-awesome-plugin"
     __version__ = "1.0.0"
     __author__ = "Your Name"
+    __labels__ = ["security", "monitoring"]  # Optional labels for categorization
     
     # Define plugin parameters
     __parameters__ = [
         Parameter(
-            name="api_key",
+            name="API Key",
+            id="api_key",  # Optional ID for parameter reference
             description="API key for external service",
             required=True,
             sensitive=True
         ),
         Parameter(
-            name="environment",
+            name="Environment",
+            id="environment",
             description="Target environment",
             required=False,
             default="production"
@@ -50,12 +53,12 @@ class MyPlugin(SpaceforgePlugin):
             env=[
                 Variable(
                     key="API_KEY",
-                    value_from_parameter="api_key",
+                    value_from_parameter="api_key",  # Matches parameter id or name
                     sensitive=True
                 ),
                 Variable(
                     key="ENVIRONMENT",
-                    value_from_parameter="environment"
+                    value_from_parameter="environment"  # Matches parameter id or name
                 )
             ]
         )
@@ -114,6 +117,15 @@ Override these methods in your plugin to add custom logic:
 
 ## Plugin Components
 
+### Labels
+
+Add optional labels to categorize your plugin:
+
+```python
+class MyPlugin(SpaceforgePlugin):
+    __labels__ = ["security", "monitoring", "compliance"]
+```
+
 ### Parameters
 
 Define user-configurable parameters:
@@ -121,20 +133,29 @@ Define user-configurable parameters:
 ```python
 __parameters__ = [
     Parameter(
-        name="database_url",
+        name="Database URL",
+        id="database_url",  # Optional: used for parameter reference
         description="Database connection URL",
         required=True,
-        sensitive=True,
-        default="postgresql://localhost:5432/mydb"
+        sensitive=True
     ),
     Parameter(
-        name="timeout", 
+        name="Timeout", 
+        id="timeout",
         description="Timeout in seconds",
         required=False,
-        default=30
+        default="30"  # Default values should be strings
     )
 ]
 ```
+
+**Parameter Notes:**
+- Parameter `name` is displayed in the Spacelift UI
+- Parameter `id` (optional) is used for programmatic reference
+- `value_from_parameter` can reference either the `id` (if present) or the `name`
+- Parameters are made available as environment variables through Variable definitions
+- Default values must be strings
+- Required parameters cannot have default values
 
 ### Contexts
 
@@ -145,11 +166,11 @@ __contexts__ = [
     Context(
         name_prefix="production",
         description="Production environment context",
-        labels={"env": "prod"},
+        labels=["env:prod"],
         env=[
             Variable(
                 key="DATABASE_URL",
-                value_from_parameter="database_url",
+                value_from_parameter="database_url",  # Matches parameter id
                 sensitive=True
             ),
             Variable(
@@ -183,6 +204,88 @@ __binaries__ = [
 ]
 ```
 
+**Context Priority System:**
+
+Control the execution order of contexts using the `priority` field:
+
+```python
+__contexts__ = [
+    Context(
+        name_prefix="setup",
+        description="Setup context (runs first)",
+        priority=0,  # Lower numbers run first
+        hooks={
+            "before_init": ["echo 'Setting up environment'"]
+        }
+    ),
+    Context(
+        name_prefix="main", 
+        description="Main context (runs second)",
+        priority=1,  # Higher numbers run after lower ones
+        hooks={
+            "before_init": ["echo 'Main execution'"]
+        }
+    )
+]
+```
+
+**Priority Notes:**
+- Default priority is `0`
+- Lower numbers execute first (0, then 1, then 2, etc.)
+- Useful for ensuring setup contexts run before main execution contexts
+
+**Binary PATH Management:**
+- When using Python hook methods (e.g., `def before_apply()`), binaries are automatically available in PATH
+- When using raw context hooks, you must manually export the PATH:
+
+```python
+__contexts__ = [
+    Context(
+        name_prefix="kubectl-setup",
+        description="Setup kubectl binary for raw hooks",
+        hooks={
+            "before_init": [
+                'export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"',
+                "kubectl version"
+            ]
+        }
+    )
+]
+```
+
+### Mounted Files
+
+Mount file content directly into contexts:
+
+```python
+from spaceforge import MountedFile
+
+__contexts__ = [
+    Context(
+        name_prefix="config",
+        description="Context with mounted configuration files",
+        mounted_files=[
+            MountedFile(
+                path="tmp/config.json",
+                content='{"environment": "production", "debug": false}',
+                sensitive=False
+            ),
+            MountedFile(
+                path="tmp/secret-config.yaml",
+                content="api_key: secret-value\nendpoint: https://api.example.com",
+                sensitive=True  # Marks content as sensitive
+            )
+        ]
+    )
+]
+```
+
+**MountedFile Notes:**
+- Files are created at the specified path when the context is applied
+- Content is written exactly as provided
+- Use `sensitive=True` for files containing secrets or sensitive data
+- path is from `/mnt/workspace/`. An example would be `tmp/config.json` which would be mounted at `/mnt/workspace/tmp/config.json`
+
 ### Policies
 
 Define OPA policies for your plugin:
@@ -191,7 +294,7 @@ Define OPA policies for your plugin:
 __policies__ = [
     Policy(
         name_prefix="security-check",
-        type="notification",
+        type="NOTIFICATION",
         body="""
 package spacelift
 
@@ -199,7 +302,7 @@ webhook[{"endpoint_id": "security-alerts"}] {
   input.run_updated.run.marked_unsafe == true
 }
         """,
-        labels={"type": "security"}
+        labels=["security"]
     )
 ]
 ```
@@ -212,11 +315,9 @@ Define webhooks to trigger external actions:
 __webhooks__ = [
     Webhook(
         name_prefix="security-alerts",
-        description="Send security alerts to external service",
         endpoint="https://alerts.example.com/webhook",
-        secrets=[
-            Variable(key="amazing", value="secret-value", sensitive=True)
-        ],
+        secretFromParameter="webhook_secret",  # Parameter id/name for webhook secret
+        labels=["security"]
     )
 ]
 ```
@@ -251,7 +352,7 @@ def before_apply(self):
 
 ### Spacelift API Integration
 
-Query the Spacelift GraphQL API (requires `SPACELIFT_API_TOKEN` and `SPACELIFT_DOMAIN`):
+Query the Spacelift GraphQL API (requires `SPACELIFT_API_TOKEN` and `TF_VAR_spacelift_graphql_endpoint`):
 
 ```python
 def after_plan(self):
@@ -270,6 +371,38 @@ def after_plan(self):
     
     self.logger.info(f"Stack state: {result['stack']['state']}")
 ```
+
+### User Token Authentication
+
+Use user API tokens instead of service tokens for Spacelift API access. This is useful because the token on the run may not have sufficient permissions for certain operations.
+
+```python
+def before_plan(self):
+    # Use user API token for authentication
+    user_id = os.environ.get('SPACELIFT_USER_ID')
+    user_secret = os.environ.get('SPACELIFT_USER_SECRET')
+    
+    if user_id and user_secret:
+        self.use_user_token(user_id, user_secret)
+        
+        # Now you can use the API with user permissions
+        result = self.query_api("""
+            query {
+                viewer {
+                    id
+                    login
+                }
+            }
+        """)
+        
+        self.logger.info(f"Authenticated as: {result['viewer']['login']}")
+```
+
+**User Token Notes:**
+- Allows plugins to act on behalf of a specific user
+- Useful for operations requiring user-specific permissions
+- User tokens may have different access levels than service tokens
+- Call `use_user_token()` before making API requests
 
 ### Access Plan and State
 
@@ -307,14 +440,14 @@ def after_plan(self):
     self.send_markdown(markdown)
 ```
 
-### Append to Policy Input
+### Add to Policy Input
 
-Append custom data to the OPA policy input:
+Add custom data to the OPA policy input:
 
 The following example will create input available via `input.third_party_metadata.custom.my_custom_data` in your OPA policies:
 ```python
 def after_plan(self):
-    self.append_policy_input("my_custom_data", {
+    self.add_to_policy_input("my_custom_data", {
         "scan_results": {
             "passed": True,
             "issues": []
@@ -343,9 +476,9 @@ spaceforge generate --help
 ### Test Plugin Hooks
 
 ```bash
-# Set parameters via environment variables
-export SPACEFORGE_PARAM_API_KEY="test-key" 
-export SPACEFORGE_PARAM_TIMEOUT="60"
+# Set parameters for local testing (parameters are normally provided by Spacelift)
+export API_KEY="test-key" 
+export TIMEOUT="60"
 
 # Test specific hook
 spaceforge runner after_plan
@@ -374,8 +507,8 @@ Access Spacelift environment variables in your hooks:
 
 ```python
 def after_plan(self):
-    run_id = os.environ.get('SPACELIFT_RUN_ID')
-    stack_id = os.environ.get('SPACELIFT_STACK_ID')
+    run_id = os.environ.get('TF_VAR_spacelift_run_id')
+    stack_id = os.environ.get('TF_VAR_spacelift_stack_id') 
     self.logger.info(f"Processing run {run_id} for stack {stack_id}")
 ```
 
@@ -409,7 +542,7 @@ Here's a complete example of a security scanning plugin:
 ```python
 import os
 import json
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Binary
+from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Binary, Policy, MountedFile
 
 class SecurityScannerPlugin(SpaceforgePlugin):
     __plugin_name__ = "security-scanner"
@@ -428,13 +561,15 @@ class SecurityScannerPlugin(SpaceforgePlugin):
     
     __parameters__ = [
         Parameter(
-            name="api_token",
+            name="API Token",
+            id="api_token",
             description="Security service API token",
             required=True,
             sensitive=True
         ),
         Parameter(
-            name="severity_threshold", 
+            name="Severity Threshold", 
+            id="severity_threshold",
             description="Minimum severity level to report",
             required=False,
             default="medium"
@@ -535,8 +670,8 @@ Generate and test this plugin:
 spaceforge generate security_scanner.py
 
 # Test locally
-export SPACEFORGE_PARAM_API_TOKEN="your-token"
-export SPACEFORGE_PARAM_SEVERITY_THRESHOLD="high"
+export API_TOKEN="your-token"
+export SEVERITY_THRESHOLD="high"
 spaceforge runner after_plan
 ```
 

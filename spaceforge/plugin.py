@@ -2,7 +2,6 @@
 Base plugin class for Spaceforge framework.
 """
 
-import inspect
 import json
 import logging
 import os
@@ -161,35 +160,6 @@ class SpaceforgePlugin(ABC):
             self.logger.debug("Successfully set user token for API calls.")
         else:
             self.logger.error(f"API call returned no data: {resp}")
-
-    def get_available_hooks(self) -> List[str]:
-        """
-        Get list of hook methods available in this plugin.
-
-        Returns:
-            List of hook method names that are implemented
-        """
-        hook_methods = []
-        for method_name in dir(self):
-            if not method_name.startswith("_") and method_name != "get_available_hooks":
-                method = getattr(self, method_name)
-                if callable(method) and not inspect.isbuiltin(method):
-                    # Check if it's a hook method (not inherited from base class)
-                    if method_name in [
-                        "before_init",
-                        "after_init",
-                        "before_plan",
-                        "after_plan",
-                        "before_apply",
-                        "after_apply",
-                        "before_perform",
-                        "after_perform",
-                        "before_destroy",
-                        "after_destroy",
-                        "after_run",
-                    ]:
-                        hook_methods.append(method_name)
-        return hook_methods
 
     def run_cli(
         self, *command: str, expect_code: int = 0, print_output: bool = True
