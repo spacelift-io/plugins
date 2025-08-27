@@ -1,0 +1,135 @@
+name: envsubst
+version: 1.4.3
+description: |-
+  # Plugin envsubst
+      This plugin allows the use of environment variables in Kubernetes manifests.
+
+      ## Usage
+      You can define your parameterized Kubernetes manifest as seen below:
+
+      ```
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: my-pod
+      spec:
+        containers:
+        - name: my-container
+          image: my-image
+          env:
+          - name: MY_ENV_VAR
+            value: ${MY_ENV_VAR}
+      ```
+      This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernetes Spacelift stack.
+author: Spacelift Team
+labels:
+- kubernetes
+- environment
+contexts:
+- name_prefix: ZZZZZ-envsubst
+  description: Main context for envsubst
+  env: []
+  mounted_files:
+  - path: /mnt/workspace/plugins/envsubst/plugin.py
+    content: |-
+      import json
+      import os
+
+      from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, Binary
+
+
+      class envsubstPlugin(SpaceforgePlugin):
+          """
+          # Plugin envsubst
+          This plugin allows the use of environment variables in Kubernetes manifests.
+
+          ## Usage
+          You can define your parameterized Kubernetes manifest as seen below:
+
+          ```
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: my-pod
+          spec:
+            containers:
+            - name: my-container
+              image: my-image
+              env:
+              - name: MY_ENV_VAR
+                value: ${MY_ENV_VAR}
+          ```
+          This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernetes Spacelift stack.
+          """
+
+          # Plugin metadata
+          __plugin_name__ = "envsubst"
+          __labels__ = ["kubernetes", "environment"]
+          __version__ = "1.4.3"
+          __author__ = "Spacelift Team"
+
+          __binaries__ = [
+              Binary(
+                  name="envsubst",
+                  download_urls={
+                      "amd64": "https://binhub.dev/e/envsubst/1.4.3/linux-amd64/envsubst",
+                      "arm64": "https://binhub.dev/e/envsubst/1.4.3/linux-arm64/envsubst"
+                  }
+              )
+          ]
+
+          # Plugin contexts
+          __contexts__ = [
+              Context(
+                  priority=1,
+                  name_prefix="kubernetes",
+                  description="envsubst plugin that allows the use of environment variables in kubernetes manifests",
+                  hooks={
+                      "before_init": [
+                          'export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"',
+                          'for file in *; do envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"; done'
+                      ]
+                  }
+              )
+          ]
+
+          def __init__(self):
+              super().__init__()
+    sensitive: false
+  - path: /mnt/workspace/plugins/envsubst/binary_install_envsubst.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
+      if command -v envsubst; then
+          echo "envsubst is already installed."
+          return
+      fi
+
+      mkdir -p /mnt/workspace/plugins/plugin_binaries
+
+      echo "Installing envsubst..."
+      mkdir -p /mnt/workspace/plugins/plugin_binaries
+      cd /mnt/workspace/plugins/plugin_binaries
+
+      if [ "$(arch)" = "x86_64" ]; then
+          curl https://binhub.dev/e/envsubst/1.4.3/linux-amd64/envsubst -o /mnt/workspace/plugins/plugin_binaries/envsubst -L
+      else
+          curl https://binhub.dev/e/envsubst/1.4.3/linux-arm64/envsubst -o /mnt/workspace/plugins/plugin_binaries/envsubst -L
+      fi
+
+      chmod +x /mnt/workspace/plugins/plugin_binaries/envsubst
+      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+    sensitive: false
+  hooks:
+    before_init:
+    - mkdir -p /mnt/workspace/plugins/envsubst
+    - chmod +x /mnt/workspace/plugins/envsubst/binary_install_envsubst.sh && /mnt/workspace/plugins/envsubst/binary_install_envsubst.sh
+- name_prefix: YYYYY-kubernetes
+  description: envsubst plugin that allows the use of environment variables in kubernetes manifests
+  hooks:
+    before_init:
+    - export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
+    - for file in *; do envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"; done
