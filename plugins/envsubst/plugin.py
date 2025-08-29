@@ -1,31 +1,28 @@
-import json
-import os
-
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, Binary
+from spaceforge import SpaceforgePlugin, Context, Binary
 
 
 class EnvsubstPlugin(SpaceforgePlugin):
     """
-    # Plugin Envsubst
-    This plugin allows the use of environment variables in Kubernetes manifests.
+# Plugin Envsubst
+This plugin allows the use of environment variables in Kubernetes manifests.
 
-    ## Usage
-    You can define your parameterized Kubernetes manifest as seen below:
+## Usage
+You can define your parameterized Kubernetes manifest as seen below:
 
-    ```yaml
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: my-pod
-    spec:
-      containers:
-      - name: my-container
-        image: my-image
-        env:
-        - name: MY_ENV_VAR
-          value: ${MY_ENV_VAR}
-    ```
-    This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernetes Spacelift stack.
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-container
+    image: my-image
+    env:
+    - name: MY_ENV_VAR
+      value: ${MY_ENV_VAR}
+```
+This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernetes Spacelift stack.
     """
 
     # Plugin metadata
