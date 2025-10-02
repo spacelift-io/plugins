@@ -10,13 +10,48 @@ fi
 
 echo "Installing {{binary.name}}..."
 mkdir -p {{static_binary_directory}}
-cd {{static_binary_directory}}
 
-if [ "$(arch)" = "x86_64" ]; then
-    curl {{amd64_url}} -o {{binary_path}} -L
+ARCH="$(arch)"
+if [ "$ARCH" = "x86_64" ]; then
+    URL="{{amd64_url}}"
+elif [ "$ARCH" = "arm64" ]; then
+    URL="{{arm64_url}}"
 else
-    curl {{arm64_url}} -o {{binary_path}} -L
+    echo "Error: Unsupported architecture '$ARCH'"
+    exit 1
 fi
 
-chmod +x {{binary_path}}
-cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+case "$URL" in
+    *.tar.gz|*.tar.bz2|*.zip)
+        TMP_DIR=$(mktemp -d)
+        trap 'rm -rf "$TMP_DIR"' EXIT
+        
+        ARCHIVE="$TMP_DIR/archive"
+        curl "$URL" -o "$ARCHIVE" -fL
+
+        case "$URL" in
+            *.tar.gz)
+                tar -xzf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                ;;
+            *.tar.bz2)
+                tar -xjf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                ;;
+            *.zip)
+                unzip -o "$ARCHIVE" -d "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                ;;
+        esac
+
+        FOUND_BINARY=$(find "$TMP_DIR" -type f -name "{{binary.name}}" | head -n 1)
+        if [ -z "$FOUND_BINARY" ]; then
+            echo "Error: Could not find binary '{{binary.name}}' in extracted archive"
+            exit 1
+        fi
+
+        mv "$FOUND_BINARY" "{{binary_path}}"
+        ;;
+    *)
+        curl "$URL" -o "{{binary_path}}" -fL
+        ;;
+esac
+
+chmod +x "{{binary_path}}"
