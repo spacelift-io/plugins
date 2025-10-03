@@ -14,15 +14,15 @@ pip install spaceforge
 
 ### 1. Create Your Plugin
 
-Create a Python file (e.g., `my_plugin.py`) and inherit from `SpaceforgePlugin`:
+Create a Python file (e.g., `plugin.py`) and inherit from `SpaceforgePlugin`:
 
 ```python
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Binary, Policy, Webhook, MountedFile
+from spaceforge import SpaceforgePlugin, Parameter, Variable, Context
 import os
 
 class MyPlugin(SpaceforgePlugin):
     # Plugin metadata
-    __plugin_name__ = "my-awesome-plugin"
+    __plugin_name__ = "my-plugin"
     __version__ = "1.0.0"
     __author__ = "Your Name"
     __labels__ = ["security", "monitoring"]  # Optional labels for categorization
@@ -81,7 +81,7 @@ class MyPlugin(SpaceforgePlugin):
 Generate the Spacelift plugin YAML manifest:
 
 ```bash
-spaceforge generate my_plugin.py
+spaceforge generate plugin.py
 ```
 
 This creates `plugin.yaml` that you can upload to Spacelift.
