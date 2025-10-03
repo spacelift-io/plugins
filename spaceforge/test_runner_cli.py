@@ -3,7 +3,7 @@
 import os
 from unittest.mock import Mock, patch
 
-from spaceforge.runner import runner_command
+from spaceforge.runner import run_command
 
 
 class TestRunnerClickCommand:
@@ -34,7 +34,7 @@ class ClickTestPlugin(SpaceforgePlugin):
             mock_runner_class.return_value = mock_runner
 
             result = cli_runner.invoke(
-                runner_command, ["after_plan", "--plugin-file", click_plugin_path]
+                run_command, ["after_plan", "--plugin-file", click_plugin_path]
             )
 
         # Assert
@@ -60,7 +60,7 @@ class ClickTestPlugin(SpaceforgePlugin):
             mock_runner_class.return_value = mock_runner
 
             result = cli_runner.invoke(
-                runner_command, ["before_apply", "--plugin-file", custom_plugin_path]
+                run_command, ["before_apply", "--plugin-file", custom_plugin_path]
             )
 
         # Assert

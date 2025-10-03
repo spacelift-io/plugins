@@ -96,7 +96,7 @@ export API_KEY="your-api-key"
 export ENVIRONMENT="staging"
 
 # Test the after_plan hook
-spaceforge runner after_plan
+spaceforge run after_plan
 ```
 
 ## Available Hooks
@@ -481,13 +481,13 @@ export API_KEY="test-key"
 export TIMEOUT="60"
 
 # Test specific hook
-spaceforge runner after_plan
+spaceforge run after_plan
 
 # Test with specific plugin file
-spaceforge runner --plugin-file my_plugin.py before_apply
+spaceforge run --plugin-file my_plugin.py before_apply
 
 # Get help
-spaceforge runner --help
+spaceforge run --help
 ```
 
 ## Plugin Development Tips
@@ -531,7 +531,7 @@ def after_plan(self):
 ### 4. Testing and Debugging
 
 - Set `SPACELIFT_DEBUG=true` to enable debug logging
-- Use the runner command to test hooks during development
+- Use the `run` command to test hooks during development
 - Test with different parameter combinations
 - Validate your generated YAML before uploading to Spacelift
 
@@ -672,7 +672,7 @@ spaceforge generate security_scanner.py
 # Test locally
 export API_TOKEN="your-token"
 export SEVERITY_THRESHOLD="high"
-spaceforge runner after_plan
+spaceforge run after_plan
 ```
 
 ## Speeding up plugin execution
@@ -688,8 +688,8 @@ There are a few things you can do to speed up plugin execution.
 
 1. **Install spaceforge:** `pip install spaceforge`
 2. **Create your plugin:** Start with the quick start example
-3. **Test locally:** Use the runner command to test your hooks
-4. **Generate manifest:** Use the generate command to create plugin.yaml
+3. **Test locally:** Use the `run` command to test your hooks
+4. **Generate manifest:** Use the `generate` command to create plugin.yaml
 5. **Upload to Spacelift:** Add your plugin manifest to your Spacelift account
 
 For more advanced examples, see the [plugins](plugins/) directory in this repository.

@@ -13,7 +13,7 @@ Spaceforge provides a simple, declarative way to create Spacelift plugins by inh
 - **SpaceforgePlugin** (`plugin.py`) - Base class with hook methods and utilities
 - **PluginRunner** (`runner.py`) - Executes hook methods, loads parameters from environment
 - **PluginGenerator** (`generator.py`) - Analyzes Python plugins and generates `plugin.yaml`
-- **CLI Interface** (`__main__.py`) - Click-based CLI with `generate` and `runner` subcommands
+- **CLI Interface** (`__main__.py`) - Click-based CLI with `generate` and `run` subcommands
 - **Pydantic Dataclasses** (`cls.py`) - Type-safe data structures with validation
 
 ### Data Validation
@@ -242,10 +242,10 @@ python -m spaceforge generate my_plugin.py -o my_plugin.yaml
 export API_KEY="your-key"
 
 # Run specific hook
-python -m spaceforge runner after_plan
+python -m spaceforge run after_plan
 
 # Run with specific plugin file
-python -m spaceforge runner --plugin-file my_plugin.py before_apply
+python -m spaceforge run --plugin-file my_plugin.py before_apply
 ```
 
 ### Get Help
@@ -253,7 +253,7 @@ python -m spaceforge runner --plugin-file my_plugin.py before_apply
 ```bash
 python -m spaceforge --help
 python -m spaceforge generate --help
-python -m spaceforge runner --help
+python -m spaceforge run --help
 ```
 
 ## Generated YAML Structure
@@ -264,7 +264,7 @@ The framework automatically generates standard Spacelift plugin YAML:
 
 1. **Requirements**: If your plugin has dependencies, create a `requirements.txt` file. The generator will automatically add a `before_init` hook to install them.
 
-2. **Testing**: Use the runner command to test individual hooks during development.
+2. **Testing**: Use the `run` command to test individual hooks during development.
 
 3. **Debugging**: Set `SPACELIFT_DEBUG=true` to enable debug logging.
 

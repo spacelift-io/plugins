@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from spaceforge.plugin import SpaceforgePlugin
-from spaceforge.runner import PluginRunner, runner_command
+from spaceforge.runner import PluginRunner, run_command
 
 
 class PluginForTesting(SpaceforgePlugin):
@@ -41,7 +41,6 @@ class PluginForTesting(SpaceforgePlugin):
 
 
 class TestPluginRunner:
-
     def setup_method(self) -> None:
         """Setup test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
@@ -293,7 +292,7 @@ class ClickTestPlugin(SpaceforgePlugin):
 
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_runner_command(self) -> None:
+    def test_run_command(self) -> None:
         """Test the Click runner command."""
         from click.testing import CliRunner
 
@@ -305,7 +304,7 @@ class ClickTestPlugin(SpaceforgePlugin):
 
             # Test the command using Click's test runner
             result = cli_runner.invoke(
-                runner_command, ["after_plan", "--plugin-file", self.test_plugin_path]
+                run_command, ["after_plan", "--plugin-file", self.test_plugin_path]
             )
 
             assert result.exit_code == 0
@@ -316,7 +315,7 @@ class ClickTestPlugin(SpaceforgePlugin):
             # Verify run_hook was called with correct hook name
             mock_runner.run_hook.assert_called_once_with("after_plan")
 
-    def test_runner_command_default_plugin_file(self) -> None:
+    def test_run_command_default_plugin_file(self) -> None:
         """Test runner command with default plugin file."""
         from click.testing import CliRunner
 
@@ -328,7 +327,7 @@ class ClickTestPlugin(SpaceforgePlugin):
 
             # Test with explicit plugin file path
             result = cli_runner.invoke(
-                runner_command, ["before_apply", "--plugin-file", self.test_plugin_path]
+                run_command, ["before_apply", "--plugin-file", self.test_plugin_path]
             )
 
             assert result.exit_code == 0

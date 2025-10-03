@@ -458,7 +458,7 @@ contexts:
       fi
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge runner --plugin-file /mnt/workspace/plugins/environment_manager/plugin.py before_init
+      spaceforge run --plugin-file /mnt/workspace/plugins/environment_manager/plugin.py before_init
     sensitive: false
   hooks:
     before_init:

@@ -21,4 +21,4 @@ fi
 export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 {% endif %}
 cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-spaceforge runner --plugin-file {{plugin_file}} {{phase}}
+spaceforge run --plugin-file {{plugin_file}} {{phase}}
