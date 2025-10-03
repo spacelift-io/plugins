@@ -84,7 +84,7 @@ class PluginRunner:
 import click
 
 
-@click.command(name="runner")
+@click.command(name="run")
 @click.argument("hook_name")
 @click.option(
     "--plugin-file",
@@ -92,7 +92,7 @@ import click
     type=click.Path(exists=True, dir_okay=False, readable=True),
     help="Path to the plugin Python file (default: plugin.py)",
 )
-def runner_command(hook_name: str, plugin_file: str) -> None:
+def run_command(hook_name: str, plugin_file: str) -> None:
     """Run a specific hook method from a plugin.
 
     HOOK_NAME: Name of the hook method to execute (e.g., after_plan, before_apply)

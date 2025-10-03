@@ -88,7 +88,6 @@ class PluginExample(SpaceforgePlugin):
 
 
 class TestPluginGenerator:
-
     def setup_method(self) -> None:
         """Setup test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
@@ -534,7 +533,7 @@ class NotAPlugin:
                 after_plan_script = mf
                 break
         assert after_plan_script is not None
-        assert "spaceforge runner" in after_plan_script.content
+        assert "spaceforge run" in after_plan_script.content
         assert "after_plan" in after_plan_script.content
 
     def test_generate_manifest(self) -> None:

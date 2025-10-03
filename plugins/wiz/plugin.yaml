@@ -299,7 +299,7 @@ contexts:
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge runner --plugin-file /mnt/workspace/plugins/wiz/plugin.py before_plan
+      spaceforge run --plugin-file /mnt/workspace/plugins/wiz/plugin.py before_plan
     sensitive: false
   hooks:
     before_init:
