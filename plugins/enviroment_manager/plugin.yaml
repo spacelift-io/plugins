@@ -100,19 +100,19 @@ labels:
 - management
 - infrastructure
 parameters:
-- name: Spacelift API Key ID
-  description: The API Key that will trigger the stack previews
+- name: Spacelift API key ID
+  description: The API key that will trigger the stack previews
   sensitive: false
   required: true
   id: spacelift_api_key_id
-- name: Spacelift API Key Secret
-  description: The API Key Secret that will trigger the stack previews
+- name: Spacelift API key secret
+  description: The API key secret that will trigger the stack previews
   sensitive: true
   required: true
   id: spacelift_api_key_secret
 contexts:
 - name_prefix: Environment Manager
-  description: Environment Manager Plugin
+  description: Environment Manager plugin
   env:
   - key: SPACELIFT_API_KEY_ID
     value_from_parameter: spacelift_api_key_id
