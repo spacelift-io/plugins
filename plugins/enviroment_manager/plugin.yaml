@@ -263,15 +263,15 @@ contexts:
 
           __parameters__ = [
               Parameter(
-                  name="Spacelift API Key ID",
+                  name="Spacelift API key ID",
                   id="spacelift_api_key_id",
-                  description="The API Key that will trigger the stack previews",
+                  description="The API key that will trigger the stack previews",
                   required=True,
               ),
               Parameter(
-                  name="Spacelift API Key Secret",
+                  name="Spacelift API key secret",
                   id="spacelift_api_key_secret",
-                  description="The API Key Secret that will trigger the stack previews",
+                  description="The API key secret that will trigger the stack previews",
                   required=True,
                   sensitive=True
               ),
@@ -280,7 +280,7 @@ contexts:
           __contexts__ = [
               Context(
                   name_prefix="Environment Manager",
-                  description="Environment Manager Plugin",
+                  description="Environment Manager plugin",
                   hooks = {
                       "before_init": [
                           "mv /mnt/workspace/__environment_manager.tf /mnt/workspace/source/$TF_VAR_spacelift_project_root/__environment_manager.tf",
