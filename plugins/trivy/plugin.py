@@ -99,7 +99,7 @@ deny contains sprintf("Found %d high security issues", [cnt]) if {
     def after_plan(self):
         try:
             # Build Trivy command
-            args = ["config", "--format", "json", "--quiet", "."]
+            args = ["config", "--format", "json", "--quiet"]
 
             # Add additional arguments if provided
             additional_args = os.environ.get("TRIVY_ADDITIONAL_ARGS", "").strip()
@@ -108,7 +108,7 @@ deny contains sprintf("Found %d high security issues", [cnt]) if {
 
             # Execute Trivy scan
             return_code, stdout, stderr = self.run_cli(
-                "trivy", *args, print_output=False
+                "trivy", *args, ".", print_output=False
             )
 
             # Parse JSON output
