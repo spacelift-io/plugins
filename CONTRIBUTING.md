@@ -157,6 +157,7 @@ __binaries__ = [
 ```
 
 **Notes**:
+- Only open-source-licensed binaries can be used in plugins unless Spacelift has authorized them.
 - `.tar.bz2`, `.tar.gz`, and `.zip` archives are extracted automatically.
 - Archives must contain a file matching the binary name. All other files are ignored.
 
