@@ -115,19 +115,16 @@ For more advanced examples, see the [plugins](plugins/) directory in this reposi
 
 ### Available Hooks
 
-Implement these methods in your plugin to add custom logic at different stages of the run lifecycle:
+Implement these methods in your plugin to add custom logic before and after specific run phases:
 
-- `before_init()` - Before Terraform init
-- `after_init()` - After Terraform init  
-- `before_plan()` - Before Terraform plan
-- `after_plan()` - After Terraform plan
-- `before_apply()` - Before Terraform apply
-- `after_apply()` - After Terraform apply
-- `before_perform()` - Before the run performs
-- `after_perform()` - After the run performs
-- `before_destroy()` - Before Terraform destroy
-- `after_destroy()` - After Terraform destroy
-- `after_run()` - After the run completes
+- **Initialization** (`before_init()` and `after_init()`)
+- **Planning** (`before_plan()` and `after_plan()`)
+- **Applying** (`before_apply()` and `after_apply()`)
+- **Destroying** (`before_destroy()` and `after_destroy()`)
+    - Used during module test cases.
+    - Used by stacks during destruction with corresponding `stack_destructor_resource`.
+- **Performing** (`before_perform()` and `after_perform()`): Used during stack tasks execution.
+- **Finally** (`after_run()`): Executed after each actively processed run, regardless of its outcome. These hooks have access to an environment variable called `TF_VAR_spacelift_final_run_state`, which indicates the final state of the run.
 
 ## Plugin Components
 
