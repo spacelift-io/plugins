@@ -198,9 +198,13 @@ class PluginGenerator:
 
     def _update_with_requirements(self, mounted_files: List[MountedFile]) -> None:
         """Update the plugin hooks if there is a requirements.txt"""
-        if os.path.exists("requirements.txt") and self.config is not None:
+        # Look for requirements.txt in the same directory as the plugin file
+        plugin_dir = os.path.dirname(self.plugin_path)
+        requirements_path = os.path.join(plugin_dir, "requirements.txt")
+
+        if os.path.exists(requirements_path) and self.config is not None:
             # read the requirements.txt file
-            with open("requirements.txt", "r") as f:
+            with open(requirements_path, "r") as f:
                 mounted_files.append(
                     MountedFile(
                         path=f"{self.plugin_working_directory}/requirements.txt",
