@@ -1,5 +1,5 @@
 name: terrascan
-version: 1.0.0
+version: 1.0.1
 description: A Spacelift plugin built with TerrascanPlugin
 author: Spacelift
 labels:
@@ -85,7 +85,7 @@ contexts:
 
       class TerrascanPlugin(SpaceforgePlugin):
           __plugin_name__ = "terrascan"
-          __version__ = "1.0.0"
+          __version__ = "1.0.1"
           __author__ = "Spacelift"
           __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 
@@ -378,7 +378,7 @@ contexts:
       cd /mnt/workspace/plugins/terrascan
 
       if [ ! -d "./venv" ]; then
-          python -m venv ./venv
+          python -m venv --system-site-packages ./venv
       fi
       . venv/bin/activate
 
@@ -394,7 +394,7 @@ contexts:
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge run --plugin-file /mnt/workspace/plugins/terrascan/plugin.py after_plan
+      python -m spaceforge run --plugin-file /mnt/workspace/plugins/terrascan/plugin.py after_plan
     sensitive: false
   hooks:
     before_init:

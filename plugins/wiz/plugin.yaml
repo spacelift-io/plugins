@@ -1,5 +1,5 @@
 name: Wiz
-version: 1.0.0
+version: 1.0.1
 description: |-
   # Plugin Wiz
 
@@ -71,7 +71,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Wiz"
           __labels__ = ["security", "code scanning", "vulnerability"]
-          __version__ = "1.0.0"
+          __version__ = "1.0.1"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -263,16 +263,51 @@ contexts:
 
       echo "Installing wizcli..."
       mkdir -p /mnt/workspace/plugins/plugin_binaries
-      cd /mnt/workspace/plugins/plugin_binaries
 
-      if [ "$(arch)" = "x86_64" ]; then
-          curl https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64 -o /mnt/workspace/plugins/plugin_binaries/wizcli -L
+      ARCH="$(arch)"
+      if [ "$ARCH" = "x86_64" ]; then
+          URL="https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64"
+      elif [ "$ARCH" = "arm64" ]; then
+          URL="https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64"
       else
-          curl https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64 -o /mnt/workspace/plugins/plugin_binaries/wizcli -L
+          echo "Error: Unsupported architecture '$ARCH'"
+          exit 1
       fi
 
-      chmod +x /mnt/workspace/plugins/plugin_binaries/wizcli
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      case "$URL" in
+          *.tar.gz|*.tar.bz2|*.zip)
+              TMP_DIR=$(mktemp -d)
+              trap 'rm -rf "$TMP_DIR"' EXIT
+
+              ARCHIVE="$TMP_DIR/archive"
+              curl "$URL" -o "$ARCHIVE" -fL
+
+              case "$URL" in
+                  *.tar.gz)
+                      tar -xzf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.tar.bz2)
+                      tar -xjf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.zip)
+                      unzip -o "$ARCHIVE" -d "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+              esac
+
+              FOUND_BINARY=$(find "$TMP_DIR" -type f -name "wizcli" | head -n 1)
+              if [ -z "$FOUND_BINARY" ]; then
+                  echo "Error: Could not find binary 'wizcli' in extracted archive"
+                  exit 1
+              fi
+
+              mv "$FOUND_BINARY" "/mnt/workspace/plugins/plugin_binaries/wizcli"
+              ;;
+          *)
+              curl "$URL" -o "/mnt/workspace/plugins/plugin_binaries/wizcli" -fL
+              ;;
+      esac
+
+      chmod +x "/mnt/workspace/plugins/plugin_binaries/wizcli"
     sensitive: false
   - path: /mnt/workspace/plugins/wiz/before_plan.sh
     content: |-
@@ -283,7 +318,7 @@ contexts:
       cd /mnt/workspace/plugins/wiz
 
       if [ ! -d "./venv" ]; then
-          python -m venv ./venv
+          python -m venv --system-site-packages ./venv
       fi
       . venv/bin/activate
 
@@ -299,7 +334,7 @@ contexts:
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge run --plugin-file /mnt/workspace/plugins/wiz/plugin.py before_plan
+      python -m spaceforge run --plugin-file /mnt/workspace/plugins/wiz/plugin.py before_plan
     sensitive: false
   hooks:
     before_init:

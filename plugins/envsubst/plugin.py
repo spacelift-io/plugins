@@ -28,7 +28,7 @@ This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernet
     # Plugin metadata
     __plugin_name__ = "Envsubst"
     __labels__ = ["kubernetes", "environment"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
