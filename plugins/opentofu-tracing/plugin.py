@@ -1,0 +1,83 @@
+from spaceforge import SpaceforgePlugin, Parameter, Variable, Context
+
+
+class OpenTofuTracingPlugin(SpaceforgePlugin):
+    """
+# OpenTofu Tracing Plugin
+
+This plugin enables OpenTelemetry tracing for OpenTofu operations in Spacelift.
+
+## Overview
+
+OpenTofu supports OpenTelemetry tracing which allows you to collect detailed traces of OpenTofu
+operations. This plugin simplifies the configuration by providing parameters for the required
+environment variables.
+
+## Usage
+
+1. Configure the OTLP endpoint parameter with your OpenTelemetry collector URL
+2. Optionally configure the insecure mode if you're using a local collector without TLS
+3. Attach the plugin to your stack using labels
+
+## Parameters
+
+- **OTLP Endpoint** (required): The URL of your OpenTelemetry collector (e.g., http://localhost:4317)
+- **OTLP Insecure**: Skip TLS verification (useful for local development, defaults to false)
+- **Traces Exporter**: The exporter type (defaults to "otlp", should rarely need to change)
+
+## Learn More
+
+For more information about OpenTofu tracing, see the official documentation:
+https://opentofu.org/docs/internals/tracing/
+    """
+
+    # Plugin metadata
+    __plugin_name__ = "OpenTofu Tracing"
+    __labels__ = ["opentofu", "observability", "tracing"]
+    __version__ = "1.0.0"
+    __author__ = "Spacelift Team"
+
+    __parameters__ = [
+        Parameter(
+            name="OTLP Endpoint",
+            id="otlp_endpoint",
+            description="The URL endpoint where OpenTofu trace data should be sent (e.g., http://localhost:4317)",
+            required=True,
+            sensitive=False
+        ),
+        Parameter(
+            name="OTLP Insecure",
+            id="otlp_insecure",
+            description="Skip TLS verification when connecting to the OTLP endpoint (set to 'true' for local development)",
+            required=False,
+            sensitive=False,
+            default="false"
+        )
+    ]
+
+    __contexts__ = [
+        Context(
+            name_prefix="opentofu-tracing",
+            description="OpenTofu Tracing Plugin - Sets environment variables for OpenTelemetry tracing",
+            env=[
+                Variable(
+                    key="OTEL_EXPORTER_OTLP_ENDPOINT",
+                    value_from_parameter="otlp_endpoint",
+                    sensitive=False
+                ),
+                Variable(
+                    key="OTEL_EXPORTER_OTLP_INSECURE",
+                    value_from_parameter="otlp_insecure",
+                    sensitive=False
+                ),
+                Variable(
+                    key="OTEL_TRACES_EXPORTER",
+                    value="otlp",
+                    sensitive=False
+                )
+            ]
+        )
+    ]
+
+    def __init__(self):
+        super().__init__()
