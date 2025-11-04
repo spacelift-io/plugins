@@ -5,7 +5,7 @@ set -e
 cd {{plugin_path}}
 
 if [ ! -d "./venv" ]; then
-    python -m venv ./venv
+    python -m venv --system-site-packages ./venv
 fi
 . venv/bin/activate
 
@@ -21,4 +21,4 @@ fi
 export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 {% endif %}
 cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-spaceforge run --plugin-file {{plugin_file}} {{phase}}
+python -m spaceforge run --plugin-file {{plugin_file}} {{phase}}
