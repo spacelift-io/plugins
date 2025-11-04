@@ -1,5 +1,5 @@
 name: Environment Manager
-version: 1.0.0
+version: 1.0.1
 description: |-
   # Spacelift Environment Variable Manager
   This plugin allows you to manage Spacelift environment variables using a centralized YAML configuration file for multiple stacks.
@@ -258,7 +258,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Environment Manager"
           __labels__ = ["management", "infrastructure"]
-          __version__ = "1.0.0"
+          __version__ = "1.0.1"
           __author__ = "Spacelift Team"
 
           __parameters__ = [
@@ -444,7 +444,7 @@ contexts:
       cd /mnt/workspace/plugins/environment_manager
 
       if [ ! -d "./venv" ]; then
-          python -m venv ./venv
+          python -m venv --system-site-packages ./venv
       fi
       . venv/bin/activate
 
@@ -458,7 +458,7 @@ contexts:
       fi
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge run --plugin-file /mnt/workspace/plugins/environment_manager/plugin.py before_init
+      python -m spaceforge run --plugin-file /mnt/workspace/plugins/environment_manager/plugin.py before_init
     sensitive: false
   hooks:
     before_init:

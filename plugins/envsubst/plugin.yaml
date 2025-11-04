@@ -1,5 +1,5 @@
 name: Envsubst
-version: 1.0.0
+version: 1.0.1
 description: |-
   # Plugin Envsubst
   This plugin allows the use of environment variables in Kubernetes manifests.
@@ -62,7 +62,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Envsubst"
           __labels__ = ["kubernetes", "environment"]
-          __version__ = "1.0.0"
+          __version__ = "1.0.1"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -107,16 +107,51 @@ contexts:
 
       echo "Installing envsubst..."
       mkdir -p /mnt/workspace/plugins/plugin_binaries
-      cd /mnt/workspace/plugins/plugin_binaries
 
-      if [ "$(arch)" = "x86_64" ]; then
-          curl https://binhub.dev/e/envsubst/1.4.3/linux-amd64/envsubst -o /mnt/workspace/plugins/plugin_binaries/envsubst -L
+      ARCH="$(arch)"
+      if [ "$ARCH" = "x86_64" ]; then
+          URL="https://binhub.dev/e/envsubst/1.4.3/linux-amd64/envsubst"
+      elif [ "$ARCH" = "arm64" ]; then
+          URL="https://binhub.dev/e/envsubst/1.4.3/linux-arm64/envsubst"
       else
-          curl https://binhub.dev/e/envsubst/1.4.3/linux-arm64/envsubst -o /mnt/workspace/plugins/plugin_binaries/envsubst -L
+          echo "Error: Unsupported architecture '$ARCH'"
+          exit 1
       fi
 
-      chmod +x /mnt/workspace/plugins/plugin_binaries/envsubst
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      case "$URL" in
+          *.tar.gz|*.tar.bz2|*.zip)
+              TMP_DIR=$(mktemp -d)
+              trap 'rm -rf "$TMP_DIR"' EXIT
+
+              ARCHIVE="$TMP_DIR/archive"
+              curl "$URL" -o "$ARCHIVE" -fL
+
+              case "$URL" in
+                  *.tar.gz)
+                      tar -xzf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.tar.bz2)
+                      tar -xjf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.zip)
+                      unzip -o "$ARCHIVE" -d "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+              esac
+
+              FOUND_BINARY=$(find "$TMP_DIR" -type f -name "envsubst" | head -n 1)
+              if [ -z "$FOUND_BINARY" ]; then
+                  echo "Error: Could not find binary 'envsubst' in extracted archive"
+                  exit 1
+              fi
+
+              mv "$FOUND_BINARY" "/mnt/workspace/plugins/plugin_binaries/envsubst"
+              ;;
+          *)
+              curl "$URL" -o "/mnt/workspace/plugins/plugin_binaries/envsubst" -fL
+              ;;
+      esac
+
+      chmod +x "/mnt/workspace/plugins/plugin_binaries/envsubst"
     sensitive: false
   hooks:
     before_init:

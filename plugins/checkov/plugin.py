@@ -77,7 +77,7 @@ from spaceforge import Context, Parameter, Policy, SpaceforgePlugin, Variable
 
 __plugin_name__ = "checkov"
 __author__ = "Spacelift"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __labels__ = ["security", "terraform"]
 
 

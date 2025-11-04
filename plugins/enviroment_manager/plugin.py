@@ -104,7 +104,7 @@ The above configuration will create the following in a plan:
     # Plugin metadata
     __plugin_name__ = "Environment Manager"
     __labels__ = ["management", "infrastructure"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = "Spacelift Team"
 
     __parameters__ = [

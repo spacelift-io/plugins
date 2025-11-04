@@ -1,5 +1,5 @@
 name: Sops
-version: 1.0.0
+version: 1.0.1
 description: |-
   # Plugin Sops
 
@@ -86,7 +86,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Sops"
           __labels__ = ["secrets management", "encryption"]
-          __version__ = "1.0.0"
+          __version__ = "1.0.1"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -145,16 +145,51 @@ contexts:
 
       echo "Installing sops..."
       mkdir -p /mnt/workspace/plugins/plugin_binaries
-      cd /mnt/workspace/plugins/plugin_binaries
 
-      if [ "$(arch)" = "x86_64" ]; then
-          curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64 -o /mnt/workspace/plugins/plugin_binaries/sops -L
+      ARCH="$(arch)"
+      if [ "$ARCH" = "x86_64" ]; then
+          URL="https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64"
+      elif [ "$ARCH" = "arm64" ]; then
+          URL="https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.arm64"
       else
-          curl https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.arm64 -o /mnt/workspace/plugins/plugin_binaries/sops -L
+          echo "Error: Unsupported architecture '$ARCH'"
+          exit 1
       fi
 
-      chmod +x /mnt/workspace/plugins/plugin_binaries/sops
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      case "$URL" in
+          *.tar.gz|*.tar.bz2|*.zip)
+              TMP_DIR=$(mktemp -d)
+              trap 'rm -rf "$TMP_DIR"' EXIT
+
+              ARCHIVE="$TMP_DIR/archive"
+              curl "$URL" -o "$ARCHIVE" -fL
+
+              case "$URL" in
+                  *.tar.gz)
+                      tar -xzf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.tar.bz2)
+                      tar -xjf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.zip)
+                      unzip -o "$ARCHIVE" -d "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+              esac
+
+              FOUND_BINARY=$(find "$TMP_DIR" -type f -name "sops" | head -n 1)
+              if [ -z "$FOUND_BINARY" ]; then
+                  echo "Error: Could not find binary 'sops' in extracted archive"
+                  exit 1
+              fi
+
+              mv "$FOUND_BINARY" "/mnt/workspace/plugins/plugin_binaries/sops"
+              ;;
+          *)
+              curl "$URL" -o "/mnt/workspace/plugins/plugin_binaries/sops" -fL
+              ;;
+      esac
+
+      chmod +x "/mnt/workspace/plugins/plugin_binaries/sops"
     sensitive: false
   - path: /mnt/workspace/plugins/sops/before_init.sh
     content: |-
@@ -165,7 +200,7 @@ contexts:
       cd /mnt/workspace/plugins/sops
 
       if [ ! -d "./venv" ]; then
-          python -m venv ./venv
+          python -m venv --system-site-packages ./venv
       fi
       . venv/bin/activate
 
@@ -181,7 +216,7 @@ contexts:
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      spaceforge run --plugin-file /mnt/workspace/plugins/sops/plugin.py before_init
+      python -m spaceforge run --plugin-file /mnt/workspace/plugins/sops/plugin.py before_init
     sensitive: false
   hooks:
     before_init:

@@ -59,7 +59,7 @@ from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Var
 
 class TerrascanPlugin(SpaceforgePlugin):
     __plugin_name__ = "terrascan"
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 

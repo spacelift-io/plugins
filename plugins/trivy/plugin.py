@@ -32,7 +32,7 @@ class TrivyPlugin(SpaceforgePlugin):
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform"]
     __plugin_name__ = "trivy"
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     __binaries__ = [
         Binary(
