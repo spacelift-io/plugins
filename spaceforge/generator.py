@@ -4,6 +4,7 @@ YAML generator for Spacelift plugins.
 
 import importlib.util
 import os
+import textwrap
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 import yaml
@@ -137,7 +138,7 @@ class PluginGenerator:
 
         doc = getattr(self.plugin_class, "__doc__", "")
         if doc:
-            doc = doc.strip()
+            doc = textwrap.dedent(doc).strip()
 
         metadata = {
             "name_prefix": getattr(
@@ -416,7 +417,8 @@ class PluginGenerator:
             def represent_str(self, data: str) -> Any:
                 """Override string representation for multiline strings."""
                 if data.count("\n") > 0:
-                    data = data.strip()
+                    # Use dedent to remove common leading whitespace from all lines
+                    data = textwrap.dedent(data).strip()
                     data = "\n".join([line.rstrip() for line in data.splitlines()])
                     return self.represent_scalar(
                         "tag:yaml.org,2002:str", data, style="|"

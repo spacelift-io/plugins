@@ -1,4 +1,5 @@
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy
+from spaceforge import Context, Parameter, Policy, SpaceforgePlugin, Variable
+
 
 class InfracostPlugin(SpaceforgePlugin):
     """
@@ -8,7 +9,7 @@ class InfracostPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Infracost"
     __labels__ = ["cost estimation", "infrastructure"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = "Spacelift Team"
 
     __parameters__ = [
@@ -17,7 +18,7 @@ class InfracostPlugin(SpaceforgePlugin):
             id="infracost_api_key",
             description="The API key for Infracost authentication",
             required=True,
-            sensitive=True
+            sensitive=True,
         )
     ]
 
@@ -29,14 +30,14 @@ class InfracostPlugin(SpaceforgePlugin):
                 Variable(
                     key="INFRACOST_API_KEY",
                     value_from_parameter="Infracost API Key",
-                    sensitive=True
+                    sensitive=True,
                 )
             ],
             hooks={
                 "after_plan": [
                     "infracost breakdown --path . --out-file infracost.custom.spacelift.json --format json"
                 ]
-            }
+            },
         )
     ]
 
