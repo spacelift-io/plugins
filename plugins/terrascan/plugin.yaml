@@ -327,7 +327,7 @@ contexts:
       ARCH="$(arch)"
       if [ "$ARCH" = "x86_64" ]; then
           URL="https://github.com/tenable/terrascan/releases/download/v1.19.9/terrascan_1.19.9_Linux_x86_64.tar.gz"
-      elif [ "$ARCH" = "arm64" ]; then
+      elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
           URL="https://github.com/tenable/terrascan/releases/download/v1.19.9/terrascan_1.19.9_Linux_arm64.tar.gz"
       else
           echo "Error: Unsupported architecture '$ARCH'"

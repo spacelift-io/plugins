@@ -540,7 +540,7 @@ contexts:
       ARCH="$(arch)"
       if [ "$ARCH" = "x86_64" ]; then
           URL="https://github.com/spacelift-solutions/tracedown/releases/download/v0.0.3/tracedown_0.0.3_linux_x86_64.tar.gz"
-      elif [ "$ARCH" = "arm64" ]; then
+      elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
           URL="https://github.com/spacelift-solutions/tracedown/releases/download/v0.0.3/tracedown_0.0.3_linux_arm64.tar.gz"
       else
           echo "Error: Unsupported architecture '$ARCH'"
