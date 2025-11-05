@@ -1,5 +1,5 @@
 name: Sops
-version: 1.0.1
+version: 1.0.2
 description: |-
   # Plugin Sops
 
@@ -45,48 +45,50 @@ contexts:
     sensitive: false
   - path: /mnt/workspace/plugins/sops/plugin.py
     content: |-
-      from sopsy import Sops, SopsyError
       from pathlib import Path
-      import yaml
 
-      from spaceforge import SpaceforgePlugin, Binary
+      import yaml
+      from sopsy import Sops, SopsyError
+
+      from spaceforge import Binary, SpaceforgePlugin
+
 
       class SopsPlugin(SpaceforgePlugin):
           """
-      # Plugin Sops
+          # Plugin Sops
 
-      This adds the `SOPS` plugin to your Spacelift account.
-      It will decrypt an arbitrary number of files based on config you set.
+          This adds the `SOPS` plugin to your Spacelift account.
+          It will decrypt an arbitrary number of files based on config you set.
 
-      ## Usage
+          ## Usage
 
-      1. Spin up the plugin
-      2. Add the autoattach label to any stack that has access to your decryption keys.
-      3. The secrets you define in your `.sops.yaml` will automatically be decrypted with your configured `creation_rules`.
+          1. Spin up the plugin
+          2. Add the autoattach label to any stack that has access to your decryption keys.
+          3. The secrets you define in your `.sops.yaml` will automatically be decrypted with your configured `creation_rules`.
 
-      #### .sops.yaml
+          #### .sops.yaml
 
-      The `.sops.yaml` file is a configuration file that tells `sops` how to decrypt your files.
-      It is a YAML file that contains a list of `creation_rules` that define how to decrypt your files.
-      Read more on sops official repository: https://github.com/getsops/sops
+          The `.sops.yaml` file is a configuration file that tells `sops` how to decrypt your files.
+          It is a YAML file that contains a list of `creation_rules` that define how to decrypt your files.
+          Read more on sops official repository: https://github.com/getsops/sops
 
-      In addition to the sops config, this plugin also uses the `.sops.yaml` file to determine which files to decrypt.
-      simply add a list of `secrets` to your `.sops.yaml` in your working directory and the plugin will decrypt them.
+          In addition to the sops config, this plugin also uses the `.sops.yaml` file to determine which files to decrypt.
+          simply add a list of `secrets` to your `.sops.yaml` in your working directory and the plugin will decrypt them.
 
-      The following `.sops.yaml` example will decrypt a `test_secret.yaml` file using the defined kms key.
-      ```yaml
-      creation_rules:
-        - kms: arn:aws:kms:us-east-2:694182862388:key/6825a259-28df-43be-80f8-6122eb8a5903
+          The following `.sops.yaml` example will decrypt a `test_secret.yaml` file using the defined kms key.
+          ```yaml
+          creation_rules:
+            - kms: arn:aws:kms:us-east-2:694182862388:key/6825a259-28df-43be-80f8-6122eb8a5903
 
-      secrets:
-        - test_secret.yaml
-      ```
+          secrets:
+            - test_secret.yaml
+          ```
           """
 
           # Plugin metadata
           __plugin_name__ = "Sops"
           __labels__ = ["secrets management", "encryption"]
-          __version__ = "1.0.1"
+          __version__ = "1.0.2"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -95,7 +97,7 @@ contexts:
                   download_urls={
                       "amd64": "https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64",
                       "arm64": "https://github.com/getsops/sops/releases/download/v3.9.1/sops-v3.9.1.linux.arm64",
-                  }
+                  },
               )
           ]
 

@@ -1,31 +1,31 @@
 import json
 import os
 
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Policy, Binary
+from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Variable
 
 
 class WizPlugin(SpaceforgePlugin):
     """
-# Plugin Wiz
+    # Plugin Wiz
 
-This adds the `wiz` plugin to your Spacelift account.
-It will scan your infrastructure as code (IaC) for vulnerabilities using Wiz CLI, generating a report of findings and
-adding them to the policy input.
+    This adds the `wiz` plugin to your Spacelift account.
+    It will scan your infrastructure as code (IaC) for vulnerabilities using Wiz CLI, generating a report of findings and
+    adding them to the policy input.
 
-## Usage
+    ## Usage
 
-1. Spin up the plugin
-2. Add the autoattach label to any stack that has access to your decryption keys.
+    1. Spin up the plugin
+    2. Add the autoattach label to any stack that has access to your decryption keys.
 
-The Wiz plugin scans your IaC files for vulnerabilities and generates a report.
-You can also access the data from a plan policy via the `input.third_party_metadata.custom.wiz` object.
-Samples of these policies are included with the plugin.
+    The Wiz plugin scans your IaC files for vulnerabilities and generates a report.
+    You can also access the data from a plan policy via the `input.third_party_metadata.custom.wiz` object.
+    Samples of these policies are included with the plugin.
     """
 
     # Plugin metadata
     __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -33,8 +33,8 @@ Samples of these policies are included with the plugin.
             name="wizcli",
             download_urls={
                 "amd64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64",
-                "arm64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64"
-            }
+                "arm64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64",
+            },
         )
     ]
 
@@ -45,15 +45,15 @@ Samples of these policies are included with the plugin.
             id="wiz_client_id",
             description="The client ID for Wiz API authentication",
             required=True,
-            sensitive=True
+            sensitive=True,
         ),
         Parameter(
             name="Wiz Client Secret",
             id="wiz_client_secret",
             description="The client secret for Wiz API authentication",
             required=True,
-            sensitive=True
-        )
+            sensitive=True,
+        ),
     ]
 
     # Plugin contexts
@@ -65,14 +65,14 @@ Samples of these policies are included with the plugin.
                 Variable(
                     key="WIZ_CLIENT_ID",
                     value_from_parameter="Wiz Client ID",
-                    sensitive=True
+                    sensitive=True,
                 ),
                 Variable(
                     key="WIZ_CLIENT_SECRET",
                     value_from_parameter="Wiz Client Secret",
-                    sensitive=True
+                    sensitive=True,
                 ),
-            ]
+            ],
         )
     ]
 
@@ -108,9 +108,7 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
     num > max_low_vulnerabilities
 }
             """,
-            labels=[
-                "wiz-plugin"
-            ]
+            labels=["wiz-plugin"],
         )
     ]
 
@@ -120,15 +118,31 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
     def before_plan(self):
         self.logger.info("Checking IAC Code")
 
-        return_code, stdout, stderr = self.run_cli("wizcli", "auth", "--id", os.environ.get("WIZ_CLIENT_ID"),
-                                                   "--secret", os.environ.get("WIZ_CLIENT_SECRET"))
+        return_code, stdout, stderr = self.run_cli(
+            "wizcli",
+            "auth",
+            "--id",
+            os.environ.get("WIZ_CLIENT_ID"),
+            "--secret",
+            os.environ.get("WIZ_CLIENT_SECRET"),
+        )
         if return_code != 0:
             exit(1)
 
-        return_code, stdout, stderr = self.run_cli("wizcli", "iac", "scan", "--format",
-                                                   "json", "--path", "./", "--no-style", "--no-color", "--no-telemetry",
-                                                   "--show-secret-snippets",
-                                                   print_output=False)
+        return_code, stdout, stderr = self.run_cli(
+            "wizcli",
+            "iac",
+            "scan",
+            "--format",
+            "json",
+            "--path",
+            "./",
+            "--no-style",
+            "--no-color",
+            "--no-telemetry",
+            "--show-secret-snippets",
+            print_output=False,
+        )
         if return_code != 0:
             # Print the output because we set print_output=False because wizcli outputs errors to stdout.
             for line in stdout:
@@ -166,9 +180,11 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
                 if match["rule"]["id"] not in findings[match["severity"]]:
                     findings[match["severity"]][match["rule"]["id"]] = {
                         "rule": match["rule"],
-                        "matches": []
+                        "matches": [],
                     }
-                findings[match["severity"]][match["rule"]["id"]]["matches"].append(match)
+                findings[match["severity"]][match["rule"]["id"]]["matches"].append(
+                    match
+                )
 
             markdown = "# Wiz IAC Scan Findings\n\n"
             markdown += f"**Status:** {stdout_json['status']['state']} **Verdict:** {stdout_json['status']['verdict']}\n"

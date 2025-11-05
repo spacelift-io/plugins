@@ -1,34 +1,34 @@
-from spaceforge import SpaceforgePlugin, Context, Binary
+from spaceforge import Binary, Context, SpaceforgePlugin
 
 
 class EnvsubstPlugin(SpaceforgePlugin):
     """
-# Plugin Envsubst
-This plugin allows the use of environment variables in Kubernetes manifests.
+    # Plugin Envsubst
+    This plugin allows the use of environment variables in Kubernetes manifests.
 
-## Usage
-You can define your parameterized Kubernetes manifest as seen below:
+    ## Usage
+    You can define your parameterized Kubernetes manifest as seen below:
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod
-spec:
-  containers:
-  - name: my-container
-    image: my-image
-    env:
-    - name: MY_ENV_VAR
-      value: ${MY_ENV_VAR}
-```
-This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernetes Spacelift stack.
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: my-pod
+    spec:
+      containers:
+      - name: my-container
+        image: my-image
+        env:
+        - name: MY_ENV_VAR
+          value: ${MY_ENV_VAR}
+    ```
+    This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernetes Spacelift stack.
     """
 
     # Plugin metadata
     __plugin_name__ = "Envsubst"
     __labels__ = ["kubernetes", "environment"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -36,8 +36,8 @@ This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernet
             name="envsubst",
             download_urls={
                 "amd64": "https://binhub.dev/e/envsubst/1.4.3/linux-amd64/envsubst",
-                "arm64": "https://binhub.dev/e/envsubst/1.4.3/linux-arm64/envsubst"
-            }
+                "arm64": "https://binhub.dev/e/envsubst/1.4.3/linux-arm64/envsubst",
+            },
         )
     ]
 
@@ -50,9 +50,9 @@ This expects the environment variable `MY_ENV_VAR` to be defined in the Kubernet
             hooks={
                 "before_init": [
                     'export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"',
-                    'for file in *; do envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"; done'
+                    'for file in *; do envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"; done',
                 ]
-            }
+            },
         )
     ]
 

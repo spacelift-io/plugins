@@ -13,10 +13,10 @@ python -m mypy spaceforge/
 
 if [[ "$CI" == "true" ]]; then
     echo "Running code formatting checks..."
-    python -m black --check spaceforge/
+    python -m black --check spaceforge/ plugins/
 
     echo "Running isort checks..."
-    python -m isort --check-only spaceforge/
+    python -m isort --check-only spaceforge/ plugins/
 
     echo "Running autoflake..."
     python -m autoflake --check ./**/*.py
@@ -28,10 +28,10 @@ if [[ "$CI" == "true" ]]; then
     cd -
 else
     echo "Running code formatting..."
-    python -m black spaceforge/
+    python -m black spaceforge/ plugins/
 
     echo "Running isort..."
-    python -m isort spaceforge/
+    python -m isort spaceforge/ plugins/
 
     echo "Running autoflake..."
     python -m autoflake --in-place ./**/*.py
