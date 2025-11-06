@@ -3,7 +3,6 @@ from spaceforge import Binary, Context, SpaceforgePlugin
 
 class EnvsubstPlugin(SpaceforgePlugin):
     """
-    # Plugin Envsubst
     This plugin allows the use of environment variables in Kubernetes manifests.
 
     ## Usage
@@ -28,7 +27,7 @@ class EnvsubstPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Envsubst"
     __labels__ = ["kubernetes", "environment"]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = "Spacelift Team"
 
     __binaries__ = [

@@ -123,7 +123,7 @@
       "type": "object"
     },
     "Parameter": {
-      "description": "A class to represent a parameter with a name and value.\n\nAttributes:\n    name (str): The name of the parameter.\n    description (str): A description of the parameter.\n    sensitive (bool): Whether the parameter contains sensitive information.\n    required (bool): Whether the parameter is required.\n    default (Optional[str]): The default value of the parameter, if any. (required if sensitive is False)\n    id (str): Unique identifier for the parameter.",
+      "description": "A class to represent a parameter with a name and value.\n\nAttributes:\n    name (str): The name of the parameter.\n    description (str): A description of the parameter.\n    type (ParameterType): The type of the parameter.\n    sensitive (bool): Whether the parameter contains sensitive information.\n    required (bool): Whether the parameter is required.\n    default (Optional[Union[str, int, float, bool]]): The default value of the parameter, if any. (required if sensitive is False)\n    id (str): Unique identifier for the parameter.",
       "properties": {
         "name": {
           "title": "Name",
@@ -131,6 +131,15 @@
         },
         "description": {
           "title": "Description",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "title": "Type",
           "type": "string"
         },
         "sensitive": {
@@ -149,6 +158,15 @@
               "type": "string"
             },
             {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
               "type": "null"
             }
           ],
@@ -162,7 +180,8 @@
       },
       "required": [
         "name",
-        "description"
+        "description",
+        "type"
       ],
       "title": "Parameter",
       "type": "object"

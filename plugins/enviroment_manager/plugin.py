@@ -7,7 +7,6 @@ from spaceforge import Context, MountedFile, Parameter, SpaceforgePlugin, Variab
 
 class EnvironmentManagerPlugin(SpaceforgePlugin):
     """
-    # Spacelift Environment Variable Manager
     This plugin allows you to manage Spacelift environment variables using a centralized YAML configuration file for multiple stacks.
 
     ## Features
@@ -106,7 +105,7 @@ class EnvironmentManagerPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Environment Manager"
     __labels__ = ["management", "infrastructure"]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = "Spacelift Team"
 
     __parameters__ = [
@@ -114,12 +113,14 @@ class EnvironmentManagerPlugin(SpaceforgePlugin):
             name="Spacelift API key ID",
             id="spacelift_api_key_id",
             description="The API key that will trigger the stack previews",
+            type="string",
             required=True,
         ),
         Parameter(
             name="Spacelift API key secret",
             id="spacelift_api_key_secret",
             description="The API key secret that will trigger the stack previews",
+            type="string",
             required=True,
             sensitive=True,
         ),

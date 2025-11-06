@@ -6,8 +6,6 @@ from spaceforge import Binary, Context, Parameter, SpaceforgePlugin, Variable
 
 class TruffleHogPlugin(SpaceforgePlugin):
     """
-    TruffleHog Secret Scanner Plugin
-
     This plugin runs TruffleHog secret scanning on the filesystem during the
     before_plan hook and reports findings organized by verification status.
 
@@ -50,9 +48,9 @@ class TruffleHogPlugin(SpaceforgePlugin):
     secrets is reported.
     """
 
-    __plugin_name__ = "trufflehog"
+    __plugin_name__ = "Trufflehog"
     __author__ = "Spacelift"
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __labels__ = ["security", "secrets"]
 
     __parameters__ = [
@@ -61,12 +59,14 @@ class TruffleHogPlugin(SpaceforgePlugin):
             id="results_filter",
             description='Controls which finding types to report (e.g., "verified", "unknown", or "verified,unknown")',
             default="verified,unknown",
+            type="string",
             required=False,
         ),
         Parameter(
             name="Additional Arguments",
             id="additional_args",
             description="Additional command-line arguments to pass to TruffleHog",
+            type="string",
             default="",
             required=False,
         ),

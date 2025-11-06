@@ -17,12 +17,14 @@ class TestPluginGeneratorParameters:
                 Parameter(
                     name="api_key",
                     description="API key for authentication",
+                    type="string",
                     required=True,
                     sensitive=True,
                 ),
                 Parameter(
                     name="endpoint",
                     description="API endpoint URL",
+                    type="string",
                     required=False,
                     default="https://api.example.com",
                 ),

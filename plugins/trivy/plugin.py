@@ -6,8 +6,6 @@ from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Var
 
 class TrivyPlugin(SpaceforgePlugin):
     """
-    # Plugin Trivy
-
     The Trivy plugin scans your Terraform/OpenTofu configurations for security misconfigurations
     and generates a detailed report with findings categorized by severity.
 
@@ -31,8 +29,8 @@ class TrivyPlugin(SpaceforgePlugin):
 
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform"]
-    __plugin_name__ = "trivy"
-    __version__ = "1.0.2"
+    __plugin_name__ = "Trivy"
+    __version__ = "1.0.3"
 
     __binaries__ = [
         Binary(
@@ -50,6 +48,8 @@ class TrivyPlugin(SpaceforgePlugin):
             id="trivy_additional_args",
             description="Additional command-line arguments to pass to Trivy",
             default="",
+            type="string",
+            required=False,
         ),
     ]
 

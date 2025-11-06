@@ -9,7 +9,7 @@ class InfracostPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Infracost"
     __labels__ = ["cost estimation", "infrastructure"]
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
     __author__ = "Spacelift Team"
 
     __parameters__ = [
@@ -17,6 +17,7 @@ class InfracostPlugin(SpaceforgePlugin):
             name="Infracost API Key",
             id="infracost_api_key",
             description="The API key for Infracost authentication",
+            type="string",
             required=True,
             sensitive=True,
         )

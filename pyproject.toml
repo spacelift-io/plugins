@@ -43,6 +43,7 @@ dev = [
     "black",
     "isort",
     "mypy",
+    "pylint",
     "types-PyYAML",
     "setuptools-scm[toml]>=6.2",
     "autoflake"
@@ -92,3 +93,17 @@ imports = ["spaceforge", "typing"]
 remove-unused-variables = true
 ignore-pass-statements = true
 remove-all-unused-imports = true
+
+[tool.pylint.main]
+load-plugins = ["linting.spaceforge_checker"]
+disable = [
+    "missing-module-docstring",
+    "missing-function-docstring",
+    "too-few-public-methods",
+    "too-many-instance-attributes",
+    "unsubscriptable-object",
+    "not-an-iterable",
+]
+
+[tool.pylint.format]
+max-line-length = 9999999 # We dont care about line length

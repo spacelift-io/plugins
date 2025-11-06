@@ -6,8 +6,6 @@ from spaceforge import Context, Parameter, Policy, SpaceforgePlugin, Variable
 
 class CheckovPlugin(SpaceforgePlugin):
     """
-    Checkov Security Scanner Plugin
-
     This plugin runs Checkov security scanning on Terraform/OpenTofu configurations
     during the after_plan hook and reports findings with detailed resource-level
     information.
@@ -77,9 +75,9 @@ class CheckovPlugin(SpaceforgePlugin):
     ```
     """
 
-    __plugin_name__ = "checkov"
+    __plugin_name__ = "Checkov"
     __author__ = "Spacelift"
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __labels__ = ["security", "terraform"]
 
     __parameters__ = [
@@ -88,6 +86,7 @@ class CheckovPlugin(SpaceforgePlugin):
             id="checkov_additional_args",
             description="Additional command-line arguments to pass to Checkov (e.g., --check HIGH,CRITICAL or --skip-check CKV_AWS_123)",
             default="",
+            type="string",
             required=False,
         )
     ]

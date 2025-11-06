@@ -6,8 +6,6 @@ from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Var
 
 class TerrascanPlugin(SpaceforgePlugin):
     """
-    Terrascan security scanner plugin for Spacelift.
-
     The Terrascan plugin scans your Infrastructure as Code for security and compliance
     violations and generates a detailed report with findings categorized by severity.
 
@@ -58,8 +56,8 @@ class TerrascanPlugin(SpaceforgePlugin):
     - [Terrascan GitHub Repository](https://github.com/tenable/terrascan)
     """
 
-    __plugin_name__ = "terrascan"
-    __version__ = "1.0.2"
+    __plugin_name__ = "Terrascan"
+    __version__ = "1.0.3"
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 
@@ -78,7 +76,9 @@ class TerrascanPlugin(SpaceforgePlugin):
             name="Additional Arguments",
             id="terrascan_additional_args",
             description="Additional command-line arguments to pass to Terrascan",
+            type="string",
             default="",
+            required=False,
         ),
     ]
 

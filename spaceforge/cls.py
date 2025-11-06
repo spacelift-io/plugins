@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import Field
 from pydantic.dataclasses import dataclass as pydantic_dataclass
@@ -10,6 +10,12 @@ optional_field = Field(default_factory=lambda: None, exclude=True)
 BinaryType = Literal[
     "amd64",
     "arm64",
+]
+
+ParameterType = Literal[
+    "string",
+    "number",
+    "boolean",
 ]
 
 
@@ -35,17 +41,19 @@ class Parameter:
     Attributes:
         name (str): The name of the parameter.
         description (str): A description of the parameter.
+        type (ParameterType): The type of the parameter.
         sensitive (bool): Whether the parameter contains sensitive information.
         required (bool): Whether the parameter is required.
-        default (Optional[str]): The default value of the parameter, if any. (required if sensitive is False)
+        default (Optional[Union[str, int, float, bool]]): The default value of the parameter, if any. (required if sensitive is False)
         id (str): Unique identifier for the parameter.
     """
 
     name: str
     description: str
+    type: ParameterType
     sensitive: bool = False
     required: bool = False
-    default: Optional[str] = None
+    default: Optional[Union[str, int, float, bool]] = None
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
     def __post_init__(self) -> None:
@@ -53,6 +61,26 @@ class Parameter:
             raise ValueError(
                 f"Default value for parameter {self.name} should be set if parameter is optional."
             )
+
+        # Validate that default value Python type matches the declared type
+        if self.default is not None:
+            if self.type == "string":
+                if not isinstance(self.default, str):
+                    raise ValueError(
+                        f"Parameter {self.name} has type 'string' but default value has Python type {type(self.default).__name__}. Expected str."
+                    )
+            elif self.type == "number":
+                if not isinstance(self.default, (int, float)) or isinstance(
+                    self.default, bool
+                ):
+                    raise ValueError(
+                        f"Parameter {self.name} has type 'number' but default value has Python type {type(self.default).__name__}. Expected int or float."
+                    )
+            elif self.type == "boolean":
+                if not isinstance(self.default, bool):
+                    raise ValueError(
+                        f"Parameter {self.name} has type 'boolean' but default value has Python type {type(self.default).__name__}. Expected bool."
+                    )
 
 
 @pydantic_dataclass
