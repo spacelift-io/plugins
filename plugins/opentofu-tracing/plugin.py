@@ -67,7 +67,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
             description="Path where the markdown report will be generated",
             default="traces.md",
             type="string",
-            required=True,
+            required=False,
             sensitive=False,
         ),
         Parameter(
@@ -76,7 +76,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
             description="Maximum number of trace batches to store",
             default=10000,
             type="number",
-            required=True,
+            required=False,
             sensitive=False,
         ),
         Parameter(
@@ -85,7 +85,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
             description="Memory limit in MB",
             default=500,
             type="number",
-            required=True,
+            required=False,
             sensitive=False,
         ),
         Parameter(
@@ -94,7 +94,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
             description="Enable summary mode for large traces (set to 'true' to enable)",
             default=False,
             type="boolean",
-            required=True,
+            required=False,
             sensitive=False,
         ),
     ]

@@ -44,28 +44,28 @@ parameters:
   description: Path where the markdown report will be generated
   type: string
   sensitive: false
-  required: true
+  required: false
   default: traces.md
   id: output_file
 - name: Max Traces
   description: Maximum number of trace batches to store
   type: number
   sensitive: false
-  required: true
+  required: false
   default: 10000
   id: max_traces
 - name: Max Memory MB
   description: Memory limit in MB
   type: number
   sensitive: false
-  required: true
+  required: false
   default: 500
   id: max_memory_mb
 - name: Summary Mode
   description: Enable summary mode for large traces (set to 'true' to enable)
   type: boolean
   sensitive: false
-  required: true
+  required: false
   default: false
   id: summary_mode
 contexts:
@@ -165,7 +165,7 @@ contexts:
                   description="Path where the markdown report will be generated",
                   default="traces.md",
                   type="string",
-                  required=True,
+                  required=False,
                   sensitive=False,
               ),
               Parameter(
@@ -174,7 +174,7 @@ contexts:
                   description="Maximum number of trace batches to store",
                   default=10000,
                   type="number",
-                  required=True,
+                  required=False,
                   sensitive=False,
               ),
               Parameter(
@@ -183,7 +183,7 @@ contexts:
                   description="Memory limit in MB",
                   default=500,
                   type="number",
-                  required=True,
+                  required=False,
                   sensitive=False,
               ),
               Parameter(
@@ -192,7 +192,7 @@ contexts:
                   description="Enable summary mode for large traces (set to 'true' to enable)",
                   default=False,
                   type="boolean",
-                  required=True,
+                  required=False,
                   sensitive=False,
               ),
           ]
