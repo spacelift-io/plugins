@@ -35,6 +35,7 @@ class TestPlugin(SpaceforgePlugin):
         Parameter(
             name="test_param",
             description="Test parameter",
+            type="string",
             required=False,
             default="default_value"
         )

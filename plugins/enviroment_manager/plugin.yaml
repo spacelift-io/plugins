@@ -1,7 +1,6 @@
 name: Environment Manager
-version: 1.0.2
+version: 1.0.3
 description: |-
-  # Spacelift Environment Variable Manager
   This plugin allows you to manage Spacelift environment variables using a centralized YAML configuration file for multiple stacks.
 
   ## Features
@@ -102,11 +101,13 @@ labels:
 parameters:
 - name: Spacelift API key ID
   description: The API key that will trigger the stack previews
+  type: string
   sensitive: false
   required: true
   id: spacelift_api_key_id
 - name: Spacelift API key secret
   description: The API key secret that will trigger the stack previews
+  type: string
   sensitive: true
   required: true
   id: spacelift_api_key_secret
@@ -161,7 +162,6 @@ contexts:
 
       class EnvironmentManagerPlugin(SpaceforgePlugin):
           """
-          # Spacelift Environment Variable Manager
           This plugin allows you to manage Spacelift environment variables using a centralized YAML configuration file for multiple stacks.
 
           ## Features
@@ -260,7 +260,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Environment Manager"
           __labels__ = ["management", "infrastructure"]
-          __version__ = "1.0.2"
+          __version__ = "1.0.3"
           __author__ = "Spacelift Team"
 
           __parameters__ = [
@@ -268,12 +268,14 @@ contexts:
                   name="Spacelift API key ID",
                   id="spacelift_api_key_id",
                   description="The API key that will trigger the stack previews",
+                  type="string",
                   required=True,
               ),
               Parameter(
                   name="Spacelift API key secret",
                   id="spacelift_api_key_secret",
                   description="The API key secret that will trigger the stack previews",
+                  type="string",
                   required=True,
                   sensitive=True,
               ),

@@ -6,8 +6,6 @@ from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Var
 
 class WizPlugin(SpaceforgePlugin):
     """
-    # Plugin Wiz
-
     This adds the `wiz` plugin to your Spacelift account.
     It will scan your infrastructure as code (IaC) for vulnerabilities using Wiz CLI, generating a report of findings and
     adding them to the policy input.
@@ -25,7 +23,7 @@ class WizPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -44,6 +42,7 @@ class WizPlugin(SpaceforgePlugin):
             name="Wiz Client ID",
             id="wiz_client_id",
             description="The client ID for Wiz API authentication",
+            type="string",
             required=True,
             sensitive=True,
         ),
@@ -51,6 +50,7 @@ class WizPlugin(SpaceforgePlugin):
             name="Wiz Client Secret",
             id="wiz_client_secret",
             description="The client secret for Wiz API authentication",
+            type="string",
             required=True,
             sensitive=True,
         ),

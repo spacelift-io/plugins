@@ -1,8 +1,6 @@
-name: trufflehog
-version: 1.0.1
+name: Trufflehog
+version: 1.0.2
 description: |-
-  TruffleHog Secret Scanner Plugin
-
   This plugin runs TruffleHog secret scanning on the filesystem during the
   before_plan hook and reports findings organized by verification status.
 
@@ -50,12 +48,14 @@ labels:
 parameters:
 - name: Results Filter
   description: Controls which finding types to report (e.g., "verified", "unknown", or "verified,unknown")
+  type: string
   sensitive: false
   required: false
   default: verified,unknown
   id: results_filter
 - name: Additional Arguments
   description: Additional command-line arguments to pass to TruffleHog
+  type: string
   sensitive: false
   required: false
   default: ''
@@ -81,8 +81,6 @@ contexts:
 
       class TruffleHogPlugin(SpaceforgePlugin):
           """
-          TruffleHog Secret Scanner Plugin
-
           This plugin runs TruffleHog secret scanning on the filesystem during the
           before_plan hook and reports findings organized by verification status.
 
@@ -125,9 +123,9 @@ contexts:
           secrets is reported.
           """
 
-          __plugin_name__ = "trufflehog"
+          __plugin_name__ = "Trufflehog"
           __author__ = "Spacelift"
-          __version__ = "1.0.1"
+          __version__ = "1.0.2"
           __labels__ = ["security", "secrets"]
 
           __parameters__ = [
@@ -136,12 +134,14 @@ contexts:
                   id="results_filter",
                   description='Controls which finding types to report (e.g., "verified", "unknown", or "verified,unknown")',
                   default="verified,unknown",
+                  type="string",
                   required=False,
               ),
               Parameter(
                   name="Additional Arguments",
                   id="additional_args",
                   description="Additional command-line arguments to pass to TruffleHog",
+                  type="string",
                   default="",
                   required=False,
               ),

@@ -1,8 +1,6 @@
-name: terrascan
-version: 1.0.2
+name: Terrascan
+version: 1.0.3
 description: |-
-  Terrascan security scanner plugin for Spacelift.
-
   The Terrascan plugin scans your Infrastructure as Code for security and compliance
   violations and generates a detailed report with findings categorized by severity.
 
@@ -60,6 +58,7 @@ labels:
 parameters:
 - name: Additional Arguments
   description: Additional command-line arguments to pass to Terrascan
+  type: string
   sensitive: false
   required: false
   default: ''
@@ -82,8 +81,6 @@ contexts:
 
       class TerrascanPlugin(SpaceforgePlugin):
           """
-          Terrascan security scanner plugin for Spacelift.
-
           The Terrascan plugin scans your Infrastructure as Code for security and compliance
           violations and generates a detailed report with findings categorized by severity.
 
@@ -134,8 +131,8 @@ contexts:
           - [Terrascan GitHub Repository](https://github.com/tenable/terrascan)
           """
 
-          __plugin_name__ = "terrascan"
-          __version__ = "1.0.2"
+          __plugin_name__ = "Terrascan"
+          __version__ = "1.0.3"
           __author__ = "Spacelift"
           __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 
@@ -154,7 +151,9 @@ contexts:
                   name="Additional Arguments",
                   id="terrascan_additional_args",
                   description="Additional command-line arguments to pass to Terrascan",
+                  type="string",
                   default="",
+                  required=False,
               ),
           ]
 

@@ -9,8 +9,6 @@ from spaceforge import Binary, Context, Parameter, SpaceforgePlugin, Variable
 
 class OpenTofuTracingPlugin(SpaceforgePlugin):
     """
-    # OpenTofu Tracing Plugin
-
     This plugin enables OpenTelemetry tracing for OpenTofu operations in Spacelift using Tracedown.
 
     ## Overview
@@ -49,7 +47,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "OpenTofu Tracing"
     __labels__ = ["opentofu", "observability", "tracing"]
-    __version__ = "2.0.1"
+    __version__ = "2.0.2"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -64,30 +62,38 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
 
     __parameters__ = [
         Parameter(
-            name="Output File (str: traces.md)",
+            name="Output File",
             id="output_file",
             description="Path where the markdown report will be generated",
+            default="traces.md",
+            type="string",
             required=True,
             sensitive=False,
         ),
         Parameter(
-            name="Max Traces (int: 10000)",
+            name="Max Traces",
             id="max_traces",
             description="Maximum number of trace batches to store",
+            default=10000,
+            type="number",
             required=True,
             sensitive=False,
         ),
         Parameter(
-            name="Max Memory MB (int: 500)",
+            name="Max Memory MB",
             id="max_memory_mb",
             description="Memory limit in MB",
+            default=500,
+            type="number",
             required=True,
             sensitive=False,
         ),
         Parameter(
-            name="Summary Mode (bool: false)",
+            name="Summary Mode",
             id="summary_mode",
             description="Enable summary mode for large traces (set to 'true' to enable)",
+            default=False,
+            type="boolean",
             required=True,
             sensitive=False,
         ),

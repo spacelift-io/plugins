@@ -1,5 +1,5 @@
 name: Infracost
-version: 1.0.1
+version: 1.0.2
 description: A plugin for integrating with Infracost to estimate costs of infrastructure changes.
 author: Spacelift Team
 labels:
@@ -8,6 +8,7 @@ labels:
 parameters:
 - name: Infracost API Key
   description: The API key for Infracost authentication
+  type: string
   sensitive: true
   required: true
   id: infracost_api_key
@@ -32,7 +33,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Infracost"
           __labels__ = ["cost estimation", "infrastructure"]
-          __version__ = "1.0.1"
+          __version__ = "1.0.2"
           __author__ = "Spacelift Team"
 
           __parameters__ = [
@@ -40,6 +41,7 @@ contexts:
                   name="Infracost API Key",
                   id="infracost_api_key",
                   description="The API key for Infracost authentication",
+                  type="string",
                   required=True,
                   sensitive=True,
               )

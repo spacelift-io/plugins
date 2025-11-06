@@ -8,8 +8,6 @@ from spaceforge import Binary, SpaceforgePlugin
 
 class SopsPlugin(SpaceforgePlugin):
     """
-    # Plugin Sops
-
     This adds the `SOPS` plugin to your Spacelift account.
     It will decrypt an arbitrary number of files based on config you set.
 
@@ -41,7 +39,7 @@ class SopsPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Sops"
     __labels__ = ["secrets management", "encryption"]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = "Spacelift Team"
 
     __binaries__ = [

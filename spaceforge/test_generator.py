@@ -30,12 +30,14 @@ class PluginExample(SpaceforgePlugin):
         Parameter(
             name="api_key",
             description="API key for authentication",
+            type="string",
             required=True,
             sensitive=True,
         ),
         Parameter(
             name="endpoint",
             description="API endpoint URL",
+            type="string",
             required=False,
             default="https://api.example.com",
         ),
@@ -106,7 +108,7 @@ class TestPlugin(SpaceforgePlugin):
     __author__ = "Test"
     
     __parameters__ = [
-        Parameter(name="test_param", description="Test parameter", required=False, default="default_value")
+        Parameter(name="test_param", description="Test parameter", type="string", required=False, default="default_value")
     ]
     
     def after_plan(self) -> None:
@@ -619,6 +621,7 @@ class FullTestPlugin(SpaceforgePlugin):
         Parameter(
             name="test_param",
             description="Test parameter",
+            type="string",
             required=False,
             default="test_value"
         )
@@ -811,12 +814,14 @@ class TestPluginGeneratorEdgeCases:
                 Parameter(
                     name="api key",
                     description="API key for authentication",
+                    type="string",
                     required=True,
                     sensitive=True,
                 ),
                 Parameter(
                     name="endpoint",
                     description="API endpoint URL",
+                    type="string",
                     required=False,
                     default="https://api.example.com",
                 ),
