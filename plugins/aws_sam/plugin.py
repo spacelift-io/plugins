@@ -1,0 +1,132 @@
+import os
+
+from spaceforge import Context, Parameter, SpaceforgePlugin, Variable
+
+
+class AwsSamPlugin(SpaceforgePlugin):
+    """
+    The AWS SAM plugin packages SAM templates into CloudFormation templates
+    for use with Spacelift's CloudFormation integration.
+
+    This plugin runs `sam package` before initialization to:
+    - Package the SAM application
+    - Upload artifacts to S3
+    - Generate a CloudFormation template for Spacelift to process
+
+    ## Usage
+
+    1. Install the plugin in your Spacelift account
+    2. Attach it to CloudFormation stacks using SAM templates
+    3. Configure the required environment variables via Spacelift contexts
+    4. The plugin runs automatically before init, generating the CF template
+
+    ## Required Environment Variables
+
+    These are typically set by Spacelift's CloudFormation integration:
+    - `CF_METADATA_REGION`: AWS region for packaging
+    - `CF_METADATA_TEMPLATE_BUCKET`: S3 bucket for template storage
+    - `CF_METADATA_ENTRY_TEMPLATE_FILE`: Output template file path
+
+    ## Configuration
+
+    - **S3 Prefix**: Prefix for SAM artifacts in S3 (default: `sam-artifacts`)
+    - **Additional Arguments**: Extra arguments to pass to `sam package`
+    """
+
+    __plugin_name__ = "AWS SAM"
+    __author__ = "tetienne"
+    __version__ = "1.0.0"
+    __labels__ = ["cloudformation", "sam", "serverless"]
+
+    __parameters__ = [
+        Parameter(
+            name="S3 Prefix",
+            id="sam_s3_prefix",
+            description="S3 prefix for SAM artifacts",
+            default="sam-artifacts",
+            type="string",
+            required=False,
+        ),
+        Parameter(
+            name="Additional Arguments",
+            id="sam_additional_args",
+            description="Additional command-line arguments to pass to sam package",
+            default="",
+            type="string",
+            required=False,
+        ),
+    ]
+
+    __contexts__ = [
+        Context(
+            name_prefix="aws_sam",
+            description="AWS SAM Plugin",
+            env=[
+                Variable(
+                    key="SAM_S3_PREFIX",
+                    value_from_parameter="sam_s3_prefix",
+                ),
+                Variable(
+                    key="SAM_ADDITIONAL_ARGS",
+                    value_from_parameter="sam_additional_args",
+                ),
+            ],
+        )
+    ]
+
+    def before_init(self):
+        """
+        Execute sam package before Spacelift initialization.
+
+        This generates the CloudFormation template from the SAM template,
+        uploading artifacts to S3 and outputting the packaged template
+        for Spacelift's CloudFormation flow.
+        """
+        try:
+            # Get required environment variables
+            region = os.environ.get("CF_METADATA_REGION")
+            template_bucket = os.environ.get("CF_METADATA_TEMPLATE_BUCKET")
+            output_template = os.environ.get("CF_METADATA_ENTRY_TEMPLATE_FILE")
+
+            if not region:
+                self.logger.error("CF_METADATA_REGION environment variable is required")
+                exit(1)
+            if not template_bucket:
+                self.logger.error("CF_METADATA_TEMPLATE_BUCKET environment variable is required")
+                exit(1)
+            if not output_template:
+                self.logger.error("CF_METADATA_ENTRY_TEMPLATE_FILE environment variable is required")
+                exit(1)
+
+            # Get optional configuration
+            s3_prefix = os.environ.get("SAM_S3_PREFIX", "sam-artifacts")
+            additional_args = os.environ.get("SAM_ADDITIONAL_ARGS", "").strip()
+
+            # Build sam package command
+            args = [
+                "package",
+                "--region", region,
+                "--s3-bucket", template_bucket,
+                "--s3-prefix", s3_prefix,
+                "--output-template-file", output_template,
+            ]
+
+            # Add additional arguments if provided
+            if additional_args:
+                args.extend(additional_args.split())
+
+            # Execute sam package
+            self.logger.info(f"Running: sam {' '.join(args)}")
+            return_code, stdout, stderr = self.run_cli("sam", *args)
+
+            if return_code != 0:
+                self.logger.error(f"sam package failed with exit code {return_code}")
+                if stderr:
+                    self.logger.error("Error output: " + "\n".join(stderr))
+                exit(1)
+
+            self.logger.info(f"Successfully generated CloudFormation template: {output_template}")
+
+        except Exception as e:
+            self.logger.error(f"Plugin failed: {e}")
+            exit(1)
