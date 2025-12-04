@@ -92,10 +92,14 @@ class AwsSamPlugin(SpaceforgePlugin):
                 self.logger.error("CF_METADATA_REGION environment variable is required")
                 exit(1)
             if not template_bucket:
-                self.logger.error("CF_METADATA_TEMPLATE_BUCKET environment variable is required")
+                self.logger.error(
+                    "CF_METADATA_TEMPLATE_BUCKET environment variable is required"
+                )
                 exit(1)
             if not output_template:
-                self.logger.error("CF_METADATA_ENTRY_TEMPLATE_FILE environment variable is required")
+                self.logger.error(
+                    "CF_METADATA_ENTRY_TEMPLATE_FILE environment variable is required"
+                )
                 exit(1)
 
             # Get optional configuration
@@ -105,10 +109,14 @@ class AwsSamPlugin(SpaceforgePlugin):
             # Build sam package command
             args = [
                 "package",
-                "--region", region,
-                "--s3-bucket", template_bucket,
-                "--s3-prefix", s3_prefix,
-                "--output-template-file", output_template,
+                "--region",
+                region,
+                "--s3-bucket",
+                template_bucket,
+                "--s3-prefix",
+                s3_prefix,
+                "--output-template-file",
+                output_template,
             ]
 
             # Add additional arguments if provided
@@ -125,7 +133,9 @@ class AwsSamPlugin(SpaceforgePlugin):
                     self.logger.error("Error output: " + "\n".join(stderr))
                 exit(1)
 
-            self.logger.info(f"Successfully generated CloudFormation template: {output_template}")
+            self.logger.info(
+                f"Successfully generated CloudFormation template: {output_template}"
+            )
 
         except Exception as e:
             self.logger.error(f"Plugin failed: {e}")
