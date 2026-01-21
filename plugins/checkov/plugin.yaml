@@ -1,5 +1,5 @@
 name: Checkov
-version: 1.0.3
+version: 1.0.4
 description: |-
   This plugin runs Checkov security scanning on Terraform/OpenTofu configurations
   during the after_plan hook and reports findings with detailed resource-level
@@ -173,7 +173,7 @@ contexts:
 
           __plugin_name__ = "Checkov"
           __author__ = "Spacelift"
-          __version__ = "1.0.3"
+          __version__ = "1.0.4"
           __labels__ = ["security", "terraform"]
 
           __parameters__ = [
@@ -205,6 +205,7 @@ contexts:
                   name_prefix="checkov",
                   type="PLAN",
                   labels=["checkov"],
+                  engine_type="REGO_V0",
                   body="""package spacelift
 
       import rego.v1
@@ -508,5 +509,6 @@ policies:
         checkov_data.summary.low == 0
         checkov_data.summary.total_failed > max_critical
     }
+  engine_type: REGO_V0
   labels:
   - checkov

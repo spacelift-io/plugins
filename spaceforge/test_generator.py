@@ -98,8 +98,7 @@ class TestPluginGenerator:
 
         # Create a test plugin file
         with open(self.test_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin, Parameter
 
 class TestPlugin(SpaceforgePlugin):
@@ -113,8 +112,7 @@ class TestPlugin(SpaceforgePlugin):
     
     def after_plan(self) -> None:
         pass
-"""
-            )
+""")
 
     def teardown_method(self) -> None:
         """Cleanup test fixtures."""
@@ -161,12 +159,10 @@ class TestPlugin(SpaceforgePlugin):
         """Test loading plugin with no SpaceforgePlugin subclass."""
         no_plugin_path = os.path.join(self.temp_dir, "no_plugin.py")
         with open(no_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 class NotAPlugin:
     pass
-"""
-            )
+""")
 
         generator = PluginGenerator(no_plugin_path)
 
@@ -606,8 +602,7 @@ class NotAPlugin:
         # Create a complete test plugin file
         full_plugin_path = os.path.join(self.temp_dir, "full_plugin.py")
         with open(full_plugin_path, "w") as f:
-            f.write(
-                '''
+            f.write('''
 from spaceforge import SpaceforgePlugin, Parameter
 
 class FullTestPlugin(SpaceforgePlugin):
@@ -630,8 +625,7 @@ class FullTestPlugin(SpaceforgePlugin):
     def after_plan(self):
         """Override after_plan hook."""
         pass
-'''
-            )
+''')
 
         generator = PluginGenerator(full_plugin_path, self.test_output_path)
 

@@ -208,6 +208,22 @@
           "title": "Body",
           "type": "string"
         },
+        "engine_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "REGO_V0",
+                "REGO_V1"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "REGO_V1",
+          "title": "Engine Type"
+        },
         "labels": {
           "anyOf": [
             {

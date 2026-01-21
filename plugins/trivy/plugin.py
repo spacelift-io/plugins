@@ -30,7 +30,7 @@ class TrivyPlugin(SpaceforgePlugin):
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform"]
     __plugin_name__ = "Trivy"
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
 
     __binaries__ = [
         Binary(
@@ -71,6 +71,7 @@ class TrivyPlugin(SpaceforgePlugin):
             name_prefix="trivy",
             type="PLAN",
             labels=["trivy"],
+            engine_type="REGO_V0",
             body="""
 package spacelift
 

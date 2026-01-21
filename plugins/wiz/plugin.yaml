@@ -1,5 +1,5 @@
 name: Wiz
-version: 1.0.3
+version: 1.0.4
 description: |-
   This adds the `wiz` plugin to your Spacelift account.
   It will scan your infrastructure as code (IaC) for vulnerabilities using Wiz CLI, generating a report of findings and
@@ -69,7 +69,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Wiz"
           __labels__ = ["security", "code scanning", "vulnerability"]
-          __version__ = "1.0.3"
+          __version__ = "1.0.4"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -126,6 +126,7 @@ contexts:
               Policy(
                   name_prefix="wiz_policy",
                   type="PLAN",
+                  engine_type="REGO_V0",
                   body="""
       package spacelift
 
@@ -388,5 +389,6 @@ policies:
     	num := input.third_party_metadata.custom.wiz.result.scanStatistics.lowMatches
         num > max_low_vulnerabilities
     }
+  engine_type: REGO_V0
   labels:
   - wiz-plugin

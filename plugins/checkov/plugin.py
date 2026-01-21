@@ -77,7 +77,7 @@ class CheckovPlugin(SpaceforgePlugin):
 
     __plugin_name__ = "Checkov"
     __author__ = "Spacelift"
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
     __labels__ = ["security", "terraform"]
 
     __parameters__ = [
@@ -109,6 +109,7 @@ class CheckovPlugin(SpaceforgePlugin):
             name_prefix="checkov",
             type="PLAN",
             labels=["checkov"],
+            engine_type="REGO_V0",
             body="""package spacelift
 
 import rego.v1
