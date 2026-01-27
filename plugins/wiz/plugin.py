@@ -30,8 +30,8 @@ class WizPlugin(SpaceforgePlugin):
         Binary(
             name="wizcli",
             download_urls={
-                "amd64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64",
-                "arm64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64",
+                "amd64": "https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64",
+                "arm64": "https://downloads.wiz.io/wizcli/latest/wizcli-linux-arm64",
             },
         )
     ]
