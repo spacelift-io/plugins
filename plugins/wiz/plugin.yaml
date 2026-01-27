@@ -76,8 +76,8 @@ contexts:
               Binary(
                   name="wizcli",
                   download_urls={
-                      "amd64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64",
-                      "arm64": "https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64",
+                      "amd64": "https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64",
+                      "arm64": "https://downloads.wiz.io/wizcli/latest/wizcli-linux-arm64",
                   },
               )
           ]
@@ -282,9 +282,9 @@ contexts:
 
       ARCH="$(arch)"
       if [ "$ARCH" = "x86_64" ]; then
-          URL="https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-amd64"
+          URL="https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64"
       elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-          URL="https://downloads.wiz.io/wizcli/0.94.0/wizcli-linux-arm64"
+          URL="https://downloads.wiz.io/wizcli/latest/wizcli-linux-arm64"
       else
           echo "Error: Unsupported architecture '$ARCH'"
           exit 1
