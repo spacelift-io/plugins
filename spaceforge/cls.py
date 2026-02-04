@@ -180,6 +180,7 @@ class Webhook:
 
 
 PolicyTypes = Literal["PUSH", "PLAN", "TRIGGER", "APPROVAL", "NOTIFICATION"]
+EngineTypes = Literal["REGO_V0", "REGO_V1"]
 
 
 @pydantic_dataclass
@@ -197,6 +198,7 @@ class Policy:
     name_prefix: str
     type: PolicyTypes
     body: str
+    engine_type: Optional[EngineTypes] = "REGO_V1"
     labels: Optional[List[str]] = optional_field
 
 

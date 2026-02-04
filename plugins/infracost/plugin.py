@@ -9,7 +9,7 @@ class InfracostPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Infracost"
     __labels__ = ["cost estimation", "infrastructure"]
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __author__ = "Spacelift Team"
 
     __parameters__ = [
@@ -46,6 +46,7 @@ class InfracostPlugin(SpaceforgePlugin):
         Policy(
             name_prefix="INFRACOST",
             type="PLAN",
+            engine_type="REGO_V0",
             body="""
 package spacelift
 

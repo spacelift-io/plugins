@@ -57,7 +57,7 @@ class TerrascanPlugin(SpaceforgePlugin):
     """
 
     __plugin_name__ = "Terrascan"
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 
@@ -99,6 +99,7 @@ class TerrascanPlugin(SpaceforgePlugin):
         Policy(
             name_prefix="terrascan-enforcement",
             type="PLAN",
+            engine_type="REGO_V0",
             labels=["terrascan", "security"],
             body="""
 package spacelift

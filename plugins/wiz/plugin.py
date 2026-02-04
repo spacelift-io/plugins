@@ -23,7 +23,7 @@ class WizPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -80,6 +80,7 @@ class WizPlugin(SpaceforgePlugin):
         Policy(
             name_prefix="wiz_policy",
             type="PLAN",
+            engine_type="REGO_V0",
             body="""
 package spacelift
 
