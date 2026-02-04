@@ -48,8 +48,7 @@ class TestPluginRunner:
 
         # Create a test plugin file
         with open(self.test_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class TestRunnerPlugin(SpaceforgePlugin):
@@ -67,8 +66,7 @@ class TestRunnerPlugin(SpaceforgePlugin):
         
     def error_hook(self) -> None:
         raise ValueError("Test error from hook")
-"""
-            )
+""")
 
     def teardown_method(self) -> None:
         """Cleanup test fixtures."""
@@ -112,12 +110,10 @@ class TestRunnerPlugin(SpaceforgePlugin):
         """Test loading plugin with no SpaceforgePlugin subclass."""
         no_plugin_path = os.path.join(self.temp_dir, "no_plugin.py")
         with open(no_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 class NotAPlugin:
     pass
-"""
-            )
+""")
 
         runner = PluginRunner(no_plugin_path)
 
@@ -234,8 +230,7 @@ class NotAPlugin:
         # Create a complete test plugin file
         full_plugin_path = os.path.join(self.temp_dir, "full_plugin.py")
         with open(full_plugin_path, "w") as f:
-            f.write(
-                '''
+            f.write('''
 from spaceforge import SpaceforgePlugin
 
 class FullTestPlugin(SpaceforgePlugin):
@@ -251,8 +246,7 @@ class FullTestPlugin(SpaceforgePlugin):
         """Integration test hook."""
         self.integration_test_passed = True
         return "success"
-'''
-            )
+''')
 
         runner = PluginRunner(full_plugin_path)
 
@@ -276,15 +270,13 @@ class TestRunnerCommand:
 
         # Create a test plugin file
         with open(self.test_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class ClickTestPlugin(SpaceforgePlugin):
     def after_plan(self) -> None:
         print("Hook executed via click")
-"""
-            )
+""")
 
     def teardown_method(self) -> None:
         """Cleanup test fixtures."""
@@ -345,15 +337,13 @@ class TestMainFunction:
 
         # Create a test plugin file
         with open(self.test_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class MainTestPlugin(SpaceforgePlugin):
     def after_plan(self) -> None:
         pass
-"""
-            )
+""")
 
     def teardown_method(self) -> None:
         """Cleanup test fixtures."""
@@ -379,8 +369,7 @@ class TestRunnerEdgeCases:
         """Test plugin file with multiple SpaceforgePlugin subclasses."""
         multi_plugin_path = os.path.join(self.temp_dir, "multi_plugin.py")
         with open(multi_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class FirstPlugin(SpaceforgePlugin):
@@ -390,8 +379,7 @@ class FirstPlugin(SpaceforgePlugin):
 class SecondPlugin(SpaceforgePlugin):  
     def before_apply(self) -> None:
         pass
-"""
-            )
+""")
 
         runner = PluginRunner(multi_plugin_path)
         runner.load_plugin()
@@ -407,8 +395,7 @@ class SecondPlugin(SpaceforgePlugin):
         """Test plugin with complex inheritance hierarchy."""
         hierarchy_plugin_path = os.path.join(self.temp_dir, "hierarchy_plugin.py")
         with open(hierarchy_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class BaseCustomPlugin(SpaceforgePlugin):
@@ -418,8 +405,7 @@ class BaseCustomPlugin(SpaceforgePlugin):
 class DerivedPlugin(BaseCustomPlugin):
     def after_plan(self) -> None:
         self.base_method()
-"""
-            )
+""")
 
         runner = PluginRunner(hierarchy_plugin_path)
         runner.load_plugin()
@@ -441,15 +427,13 @@ class DerivedPlugin(BaseCustomPlugin):
         """Test hook execution that returns a value."""
         return_plugin_path = os.path.join(self.temp_dir, "return_plugin.py")
         with open(return_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class ReturnPlugin(SpaceforgePlugin):
     def after_plan(self) -> dict[str, str]:
         return {"status": "success", "data": "test"}
-"""
-            )
+""")
 
         runner = PluginRunner(return_plugin_path)
         runner.load_plugin()
@@ -462,15 +446,13 @@ class ReturnPlugin(SpaceforgePlugin):
         """Test hook that expects arguments (should fail gracefully)."""
         args_plugin_path = os.path.join(self.temp_dir, "args_plugin.py")
         with open(args_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class ArgsPlugin(SpaceforgePlugin):
     def after_plan(self, required_arg) -> None:
         pass
-"""
-            )
+""")
 
         runner = PluginRunner(args_plugin_path)
         runner.load_plugin()
@@ -489,16 +471,14 @@ class ArgsPlugin(SpaceforgePlugin):
         """Test plugin loading when plugin imports fail."""
         import_error_path = os.path.join(self.temp_dir, "import_error_plugin.py")
         with open(import_error_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from nonexistent_module import SomeClass
 from spaceforge import SpaceforgePlugin
 
 class ImportErrorPlugin(SpaceforgePlugin):
     def after_plan(self) -> None:
         pass
-"""
-            )
+""")
 
         runner = PluginRunner(import_error_path)
 
@@ -509,8 +489,7 @@ class ImportErrorPlugin(SpaceforgePlugin):
         """Test that running hooks preserves plugin instance state."""
         state_plugin_path = os.path.join(self.temp_dir, "state_plugin.py")
         with open(state_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class StatePlugin(SpaceforgePlugin):
@@ -523,8 +502,7 @@ class StatePlugin(SpaceforgePlugin):
         
     def get_counter_hook(self) -> int:
         return self.counter
-"""
-            )
+""")
 
         runner = PluginRunner(state_plugin_path)
         runner.load_plugin()
