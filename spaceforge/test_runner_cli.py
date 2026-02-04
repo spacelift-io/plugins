@@ -14,15 +14,13 @@ class TestRunnerClickCommand:
         # Arrange
         click_plugin_path = os.path.join(temp_dir, "click_plugin.py")
         with open(click_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class ClickTestPlugin(SpaceforgePlugin):
     def after_plan(self):
         print("Hook executed via click")
-"""
-            )
+""")
 
         # Act
         from click.testing import CliRunner

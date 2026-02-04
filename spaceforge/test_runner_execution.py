@@ -35,8 +35,7 @@ class TestPluginRunnerExecution:
         # Arrange
         runner_plugin_path = os.path.join(temp_dir, "runner_plugin.py")
         with open(runner_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class TestRunnerPlugin(SpaceforgePlugin):
@@ -46,8 +45,7 @@ class TestRunnerPlugin(SpaceforgePlugin):
     
     def after_plan(self):
         self.executed_hooks.append('after_plan')
-"""
-            )
+""")
 
         runner = PluginRunner(runner_plugin_path)
         runner.load_plugin()
@@ -106,15 +104,13 @@ class TestRunnerPlugin(SpaceforgePlugin):
         # Arrange
         error_plugin_path = os.path.join(temp_dir, "error_plugin.py")
         with open(error_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class ErrorPlugin(SpaceforgePlugin):
     def error_hook(self):
         raise ValueError("Test error from hook")
-"""
-            )
+""")
 
         runner = PluginRunner(error_plugin_path)
         runner.load_plugin()
@@ -135,8 +131,7 @@ class ErrorPlugin(SpaceforgePlugin):
         # Arrange
         multi_hook_path = os.path.join(temp_dir, "multi_hook.py")
         with open(multi_hook_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 from spaceforge import SpaceforgePlugin
 
 class MultiHookPlugin(SpaceforgePlugin):
@@ -149,8 +144,7 @@ class MultiHookPlugin(SpaceforgePlugin):
         
     def before_apply(self):
         self.executed_hooks.append('before_apply')
-"""
-            )
+""")
 
         runner = PluginRunner(multi_hook_path)
         runner.load_plugin()

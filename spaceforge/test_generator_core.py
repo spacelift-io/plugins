@@ -68,12 +68,10 @@ class TestPluginGeneratorLoading:
         # Arrange
         no_plugin_path = os.path.join(temp_dir, "no_plugin.py")
         with open(no_plugin_path, "w") as f:
-            f.write(
-                """
+            f.write("""
 class NotAPlugin:
     pass
-"""
-            )
+""")
 
         generator = PluginGenerator(no_plugin_path)
 
