@@ -48,7 +48,7 @@ class SopsPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Sops"
     __labels__ = ["secrets management", "encryption"]
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -112,10 +112,10 @@ class SopsPlugin(SpaceforgePlugin):
                 continue
 
             try:
-                self.logger.log(f"Decrypting secret {secret}.")
+                self.logger.info(f"Decrypting secret {secret}.")
                 sops = Sops(Path(secret), in_place=True)
                 sops.decrypt()
-                self.logger.log("Decryption successful.")
+                self.logger.info("Decryption successful.")
             except SopsyError as e:
                 self.logger.error(f"Failed to decrypt secret: {e}")
             except Exception as e:
