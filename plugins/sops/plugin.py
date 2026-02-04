@@ -1,9 +1,10 @@
+import os
 from pathlib import Path
 
 import yaml
 from sopsy import Sops, SopsyError
 
-from spaceforge import Binary, SpaceforgePlugin
+from spaceforge import Binary, Context, Parameter, SpaceforgePlugin, Variable
 
 
 class SopsPlugin(SpaceforgePlugin):
@@ -34,12 +35,20 @@ class SopsPlugin(SpaceforgePlugin):
     secrets:
       - test_secret.yaml
     ```
+
+    ## Configuration
+
+    Use the "Config File Path" parameter to specify the location of your `.sops.yaml` file.
+    This is useful when your stack's `project_root` is set to a subdirectory but the `.sops.yaml`
+    file is at the repository root.
+
+    Example: `${TF_VAR_spacelift_workspace_root}/source/.sops.yaml`
     """
 
     # Plugin metadata
     __plugin_name__ = "Sops"
     __labels__ = ["secrets management", "encryption"]
-    __version__ = "1.0.3"
+    __version__ = "1.1.0"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -52,20 +61,48 @@ class SopsPlugin(SpaceforgePlugin):
         )
     ]
 
+    __parameters__ = [
+        Parameter(
+            name="Config File Path",
+            id="sops_config_path",
+            description="Path to the .sops.yaml configuration file. Defaults to .sops.yaml in the working directory. Use an absolute path (e.g., /mnt/workspace/source/.sops.yaml) when the config file is at the repository root but the stack uses a project_root subdirectory.",
+            default=".sops.yaml",
+            type="string",
+            required=False,
+        ),
+    ]
+
+    __contexts__ = [
+        Context(
+            name_prefix="sops",
+            description="Main context for Sops",
+            env=[
+                Variable(
+                    key="SOPS_CONFIG_PATH",
+                    value_from_parameter="sops_config_path",
+                ),
+            ],
+        )
+    ]
+
     def before_init(self):
-        if not Path(".sops.yaml").exists():
-            self.logger.error("No .sops.yaml file found.")
+        # Get config path from environment variable or use default
+        config_path = os.environ.get("SOPS_CONFIG_PATH", ".sops.yaml").strip()
+        config_file = Path(config_path)
+
+        if not config_file.exists():
+            self.logger.error(f"No config file found at: {config_path}")
             return
 
-        secrets = Path(".sops.yaml").read_text()
+        secrets = config_file.read_text()
         try:
             secrets = yaml.safe_load(secrets)
         except yaml.YAMLError as e:
-            self.logger.error(f"Failed to parse .sops.yaml: {e}")
+            self.logger.error(f"Failed to parse {config_path}: {e}")
             return
 
         if "secrets" not in secrets:
-            self.logger.error("No secrets key found in .sops.yaml.")
+            self.logger.error(f"No secrets key found in {config_path}.")
             return
         secrets = secrets["secrets"]
 
