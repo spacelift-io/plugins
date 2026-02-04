@@ -48,7 +48,7 @@ class SopsPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Sops"
     __labels__ = ["secrets management", "encryption"]
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
     __author__ = "Spacelift Team"
 
     __binaries__ = [

@@ -1,5 +1,5 @@
 name: Sops
-version: 1.1.0
+version: 1.1.1
 description: |-
   This adds the `SOPS` plugin to your Spacelift account.
   It will decrypt an arbitrary number of files based on config you set.
@@ -112,7 +112,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Sops"
           __labels__ = ["secrets management", "encryption"]
-          __version__ = "1.1.0"
+          __version__ = "1.1.1"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
