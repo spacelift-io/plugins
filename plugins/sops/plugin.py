@@ -112,10 +112,10 @@ class SopsPlugin(SpaceforgePlugin):
                 continue
 
             try:
-                self.logger.log(f"Decrypting secret {secret}.")
+                self.logger.info(f"Decrypting secret {secret}.")
                 sops = Sops(Path(secret), in_place=True)
                 sops.decrypt()
-                self.logger.log("Decryption successful.")
+                self.logger.info("Decryption successful.")
             except SopsyError as e:
                 self.logger.error(f"Failed to decrypt secret: {e}")
             except Exception as e:
