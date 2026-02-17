@@ -116,13 +116,6 @@ class SopsPlugin(SpaceforgePlugin):
             # Expand environment variables in secret paths (supports $VAR and ${VAR} syntax)
             secret = os.path.expandvars(secret)
 
-            if "$" in secret:
-                self.logger.error(
-                    f"Secret path '{secret}' contains unresolved environment variables. "
-                    f"Ensure all referenced variables are set."
-                )
-                continue
-
             if not Path(secret).exists():
                 self.logger.error(f"Secret file {secret} does not exist.")
                 continue
