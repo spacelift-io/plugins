@@ -43,12 +43,18 @@ class SopsPlugin(SpaceforgePlugin):
     file is at the repository root.
 
     Example: `${TF_VAR_spacelift_workspace_root}/source/.sops.yaml`
+
+    Environment variables are supported in the `secrets` list using `$VAR` or `${VAR}` syntax:
+    ```yaml
+    secrets:
+      - services/${TF_VAR_service_name}/secrets/${TF_VAR_environment}.enc.yaml
+    ```
     """
 
     # Plugin metadata
     __plugin_name__ = "Sops"
     __labels__ = ["secrets management", "encryption"]
-    __version__ = "1.1.1"
+    __version__ = "1.2.0"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -107,6 +113,9 @@ class SopsPlugin(SpaceforgePlugin):
         secrets = secrets["secrets"]
 
         for secret in secrets:
+            # Expand environment variables in secret paths (supports $VAR and ${VAR} syntax)
+            secret = os.path.expandvars(secret)
+
             if not Path(secret).exists():
                 self.logger.error(f"Secret file {secret} does not exist.")
                 continue
