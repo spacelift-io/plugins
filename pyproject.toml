@@ -42,7 +42,7 @@ dev = [
     "black>=26.1.0",
     "isort",
     "mypy",
-    "pylint",
+    "pylint==4.0.4",
     "types-PyYAML",
     "setuptools-scm[toml]>=6.2",
     "autoflake"
