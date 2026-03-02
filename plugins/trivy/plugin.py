@@ -30,14 +30,14 @@ class TrivyPlugin(SpaceforgePlugin):
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform"]
     __plugin_name__ = "Trivy"
-    __version__ = "1.0.4"
+    __version__ = "1.0.5"
 
     __binaries__ = [
         Binary(
             name="trivy",
             download_urls={
-                "amd64": "https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-64bit.tar.gz",
-                "arm64": "https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-ARM64.tar.gz",
+                "amd64": "https://github.com/aquasecurity/trivy/releases/download/v0.69.2/trivy_0.69.2_Linux-64bit.tar.gz",
+                "arm64": "https://github.com/aquasecurity/trivy/releases/download/v0.69.2/trivy_0.69.2_Linux-ARM64.tar.gz",
             },
         ),
     ]

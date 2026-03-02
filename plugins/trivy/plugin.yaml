@@ -1,5 +1,5 @@
 name: Trivy
-version: 1.0.4
+version: 1.0.5
 description: |-
   The Trivy plugin scans your Terraform/OpenTofu configurations for security misconfigurations
   and generates a detailed report with findings categorized by severity.
@@ -74,14 +74,14 @@ contexts:
           __author__ = "Spacelift"
           __labels__ = ["security", "terraform"]
           __plugin_name__ = "Trivy"
-          __version__ = "1.0.4"
+          __version__ = "1.0.5"
 
           __binaries__ = [
               Binary(
                   name="trivy",
                   download_urls={
-                      "amd64": "https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-64bit.tar.gz",
-                      "arm64": "https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-ARM64.tar.gz",
+                      "amd64": "https://github.com/aquasecurity/trivy/releases/download/v0.69.2/trivy_0.69.2_Linux-64bit.tar.gz",
+                      "arm64": "https://github.com/aquasecurity/trivy/releases/download/v0.69.2/trivy_0.69.2_Linux-ARM64.tar.gz",
                   },
               ),
           ]
@@ -285,9 +285,9 @@ contexts:
 
       ARCH="$(arch)"
       if [ "$ARCH" = "x86_64" ]; then
-          URL="https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-64bit.tar.gz"
+          URL="https://github.com/aquasecurity/trivy/releases/download/v0.69.2/trivy_0.69.2_Linux-64bit.tar.gz"
       elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-          URL="https://github.com/aquasecurity/trivy/releases/download/v0.67.2/trivy_0.67.2_Linux-ARM64.tar.gz"
+          URL="https://github.com/aquasecurity/trivy/releases/download/v0.69.2/trivy_0.69.2_Linux-ARM64.tar.gz"
       else
           echo "Error: Unsupported architecture '$ARCH'"
           exit 1
