@@ -1,5 +1,5 @@
 name: Trivy
-version: 1.0.4
+version: 1.0.5
 description: |-
   The Trivy plugin scans your Terraform/OpenTofu configurations for security misconfigurations
   and generates a detailed report with findings categorized by severity.
