@@ -1,0 +1,269 @@
+name: TFLint
+version: 1.0.0
+description: |-
+  The TFLint plugin runs TFLint on your Terraform/OpenTofu configurations
+  and generates a detailed report with findings categories by severity.
+
+  You can also access the scan data from a plan policy via the
+  `input.third_party_metadata.custom.tflint` object.
+
+  ## Usage
+
+  1. Install the plugin in your Spacelift account
+  2. Attach it to stacks using Terraform/OpenTofu
+  3. The plugin runs automatically after each plan
+  4. View results in the Plugins Output tab
+author: Liferay
+labels:
+- linting
+- terraform
+parameters:
+- name: Additional Arguments
+  description: Additional command-line arguments to pass to TFLint
+  type: string
+  sensitive: false
+  required: false
+  default: ''
+  id: tflint_additional_args
+contexts:
+- name_prefix: tflint
+  description: TFLint Plugin
+  env:
+  - key: TFLINT_ADDITIONAL_ARGS
+    value_from_parameter: tflint_additional_args
+    sensitive: false
+  mounted_files:
+  - path: /mnt/workspace/plugins/tflint/plugin.py
+    content: |-
+      import json
+      import os
+
+      from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Variable
+
+
+      class TFLintPlugin(SpaceforgePlugin):
+          """
+          The TFLint plugin runs TFLint on your Terraform/OpenTofu configurations
+          and generates a detailed report with findings categories by severity.
+
+          You can also access the scan data from a plan policy via the
+          `input.third_party_metadata.custom.tflint` object.
+
+          ## Usage
+
+          1. Install the plugin in your Spacelift account
+          2. Attach it to stacks using Terraform/OpenTofu
+          3. The plugin runs automatically after each plan
+          4. View results in the Plugins Output tab
+          """
+
+          __author__ = "Allen Ziegenfus"
+          __labels__ = ["linting", "terraform"]
+          __plugin_name__ = "TFLint"
+          __version__ = "1.0.0"
+
+          __binaries__ = [
+              Binary(
+                  name="tflint",
+                  download_urls={
+                      "amd64": "https://github.com/terraform-linters/tflint/releases/download/v0.55.1/tflint_linux_amd64.zip",
+                      "arm64": "https://github.com/terraform-linters/tflint/releases/download/v0.55.1/tflint_linux_arm64.zip",
+                  },
+              ),
+          ]
+
+          __parameters__ = [
+              Parameter(
+                  name="Additional Arguments",
+                  id="tflint_additional_args",
+                  description="Additional command-line arguments to pass to TFLint",
+                  default="",
+                  type="string",
+                  required=False,
+              ),
+          ]
+
+          __contexts__ = [
+              Context(
+                  name_prefix="tflint",
+                  description="TFLint Plugin",
+                  env=[
+                      Variable(
+                          key="TFLINT_ADDITIONAL_ARGS",
+                          value_from_parameter="tflint_additional_args",
+                      ),
+                  ],
+              )
+          ]
+
+          def after_plan(self):
+              try:
+                  # Initialize TFLint
+                  self.logger.info("Initializing TFLint...")
+                  self.run_cli("tflint", "--init", print_output=False)
+
+                  # Build TFLint command
+                  args = ["--format", "json"]
+
+                  # Add additional arguments if provided
+                  additional_args = os.environ.get("TFLINT_ADDITIONAL_ARGS", "").strip()
+                  if additional_args:
+                      args.extend(additional_args.split())
+
+                  # Execute TFLint scan
+                  self.logger.info("Running TFLint scan...")
+                  return_code, stdout, stderr = self.run_cli(
+                      "tflint", *args, print_output=False
+                  )
+
+                  # Parse JSON output
+                  try:
+                      content = "\n".join(stdout)
+                      if not content.strip():
+                          stdout_json = {"issues": []}
+                      else:
+                          data = json.loads(content)
+                          if isinstance(data, list):
+                              stdout_json = {"issues": data}
+                          else:
+                              stdout_json = data
+                  except json.JSONDecodeError as e:
+                      self.logger.error(f"Failed to parse TFLint JSON output: {e}")
+                      if stdout:
+                          self.logger.error("Raw output: " + "\n".join(stdout))
+                      exit(1)
+
+                  # Add to policy input
+                  self.add_to_policy_input("tflint", stdout_json)
+
+                  issues = stdout_json.get("issues", [])
+
+                  # If no findings, report success
+                  if not issues:
+                      self.logger.info("✓ No TFLint issues found")
+                      return
+
+                  # Generate markdown report
+                  markdown = "# TFLint Analysis Results\n\n"
+                  markdown += f"Found **{len(issues)}** issue(s)\n\n"
+
+                  severity_emojis = {
+                      "error": "🔴",
+                      "warning": "🟡",
+                      "notice": "🔵",
+                  }
+
+                  # Sort issues by severity
+                  issues_by_severity = {"error": [], "warning": [], "notice": []}
+                  for issue in issues:
+                      severity = issue.get("rule", {}).get("severity", "notice")
+                      if severity in issues_by_severity:
+                          issues_by_severity[severity].append(issue)
+                      else:
+                          issues_by_severity["notice"].append(issue)
+
+                  for severity in ["error", "warning", "notice"]:
+                      findings = issues_by_severity[severity]
+                      if not findings:
+                          continue
+
+                      emoji = severity_emojis.get(severity, "")
+                      markdown += f"## {emoji} {severity.capitalize()} ({len(findings)} finding{'s' if len(findings) > 1 else ''})\n\n"
+
+                      for issue in findings:
+                          rule_name = issue.get("rule", {}).get("name", "unknown")
+                          message = issue.get("message", "No message provided")
+                          filename = issue.get("range", {}).get("filename", "unknown")
+                          line = issue.get("range", {}).get("start", {}).get("line", 0)
+                          link = issue.get("rule", {}).get("link", "")
+
+                          markdown += f"### {rule_name}\n\n"
+                          markdown += f"**Location:** `{filename}:{line}`\n\n"
+                          markdown += f"**Message:** {message}\n\n"
+                          
+                          if link:
+                              markdown += f"[Rule documentation]({link})\n\n"
+
+                          markdown += "---\n\n"
+
+                  # Send markdown report
+                  result = self.send_markdown(markdown)
+                  if result:
+                      self.logger.info(
+                          "TFLint findings found. Check the Plugins Output tab for details."
+                      )
+                  else:
+                      self.logger.error("Failed to upload plugin outputs")
+              except Exception as e:
+                  self.logger.error(f"Plugin failed: {e}")
+                  exit(1)
+    sensitive: false
+  - path: /mnt/workspace/plugins/tflint/binary_install_tflint.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
+      if command -v tflint; then
+          echo "tflint is already installed."
+          return
+      fi
+
+      echo "Installing tflint..."
+      mkdir -p /mnt/workspace/plugins/plugin_binaries
+
+      ARCH="$(arch)"
+      if [ "$ARCH" = "x86_64" ]; then
+          URL="https://github.com/terraform-linters/tflint/releases/download/v0.55.1/tflint_linux_amd64.zip"
+      elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
+          URL="https://github.com/terraform-linters/tflint/releases/download/v0.55.1/tflint_linux_arm64.zip"
+      else
+          echo "Error: Unsupported architecture '$ARCH'"
+          exit 1
+      fi
+
+      TMP_DIR=$(mktemp -d)
+      trap 'rm -rf "$TMP_DIR"' EXIT
+
+      ARCHIVE="$TMP_DIR/archive.zip"
+      curl "$URL" -o "$ARCHIVE" -fL
+      unzip -o "$ARCHIVE" -d "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+
+      FOUND_BINARY=$(find "$TMP_DIR" -type f -name "tflint" | head -n 1)
+      if [ -z "$FOUND_BINARY" ]; then
+          echo "Error: Could not find binary 'tflint' in extracted archive"
+          exit 1
+      fi
+
+      mv "$FOUND_BINARY" "/mnt/workspace/plugins/plugin_binaries/tflint"
+      chmod +x "/mnt/workspace/plugins/plugin_binaries/tflint"
+    sensitive: false
+  - path: /mnt/workspace/plugins/tflint/after_plan.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      cd /mnt/workspace/plugins/tflint
+
+      if [ ! -d "./venv" ]; then
+          python -m venv --system-site-packages ./venv
+      fi
+      . venv/bin/activate
+
+      if ! command -v spaceforge; then
+          pip install spaceforge
+      fi
+
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
+
+      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      python -m spaceforge run --plugin-file /mnt/workspace/plugins/tflint/plugin.py after_plan
+    sensitive: false
+  hooks:
+    before_init:
+    - mkdir -p /mnt/workspace/plugins/tflint
+    - chmod +x /mnt/workspace/plugins/tflint/binary_install_tflint.sh && /mnt/workspace/plugins/tflint/binary_install_tflint.sh
+    after_plan:
+    - chmod +x /mnt/workspace/plugins/tflint/after_plan.sh && /mnt/workspace/plugins/tflint/after_plan.sh
