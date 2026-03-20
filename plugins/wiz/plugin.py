@@ -23,7 +23,7 @@ class WizPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
-    __version__ = "2.0.0"
+    __version__ = "2.1.0"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -225,7 +225,9 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
             args.extend(["--name", os.environ.get("DEFAULT_SCAN_NAME")])
 
         if os.environ.get("DEFAULT_POLICIES", "") != "":
-            args.extend(["--policies", os.environ.get("DEFAULT_POLICIES")])
+            policies = os.environ.get("DEFAULT_POLICIES").split(",")
+            for policy in policies:
+                args.extend(["-p", policy.strip()])
 
         additional_args = os.environ.get("WIZ_ADDITIONAL_ARGS", "").strip()
         if additional_args:
@@ -241,69 +243,76 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
                 self.logger.error(line)
             exit(1)
 
-        with open("wiz_scan.json", "r") as f:
-            results = json.load(f)
-
-        self.logger.debug(results)
-
-        if results is None:
-            self.logger.error("Failed to parse Wiz CLI output as JSON")
-            self.logger.debug(stdout, results)
-            exit(1)
-
-        if "result" not in results or "ruleMatches" not in results["result"]:
-            self.logger.error("Unexpected Wiz CLI output format")
-            self.logger.debug(results)
-            exit(1)
-
-        self.add_to_policy_input("wiz", results)
-
-        if results["result"]["ruleMatches"] is None:
-            self.logger.info("No findings found in the IAC scan.")
+        if return_code != 0:
+            self.logger.error("Wiz CLI scan failed")
+            self.logger.debug(f"exit: {return_code}", stdout, stderr)
         else:
-            findings = {}
-            # Sort the findings by the severity and their rule id
-            for match in results["result"]["ruleMatches"]:
-                if match["severity"] not in findings:
-                    findings[match["severity"]] = {}
-                if match["rule"]["id"] not in findings[match["severity"]]:
-                    findings[match["severity"]][match["rule"]["id"]] = {
-                        "rule": match["rule"],
-                        "matches": [],
-                    }
-                findings[match["severity"]][match["rule"]["id"]]["matches"].append(
-                    match
-                )
 
-            markdown = "# Wiz IAC Scan Findings\n\n"
-            markdown += f"**Status:** {results['status']['state']} **Verdict:** {results['status']['verdict']}\n"
-            for severity, matches in findings.items():
-                severity = severity.upper()
+            with open("wiz_scan.json", "r") as f:
+                results = json.load(f)
 
-                emoji = None
-                if severity == "INFORMATIONAL":
-                    emoji = "🟢"
-                if severity == "LOW":
-                    emoji = "🟡"
-                elif severity == "MEDIUM":
-                    emoji = "🟡"
-                elif severity == "HIGH":
-                    emoji = "🟠"
-                elif severity == "CRITICAL":
-                    emoji = "🔴"
-                if emoji is not None:
-                    markdown += f"### {emoji} {severity} Findings\n"
-                else:
-                    markdown += f"### {severity} Findings\n"
+            self.logger.debug(results)
 
-                for rule_id, rule_data in matches.items():
-                    markdown += f"#### {rule_data['rule']['name']} (ID: {rule_id})\n"
-                    for cycled_rule in rule_data["matches"]:
-                        for match in cycled_rule["matches"]:
-                            markdown += f"- File: {match['fileName']}, Line: {match['lineNumber']}\n"
-                    markdown += "\n"
-            if "reportUrl" in results:
-                markdown += f"[View Report]({results['reportUrl']})\n"
-            result = self.send_markdown(markdown)
-            if not result:
-                self.logger.error("Failed to send Wiz CLI output to spacelift")
+            if results is None:
+                self.logger.error("Failed to parse Wiz CLI output as JSON")
+                self.logger.debug(stdout, results)
+                exit(1)
+
+            if "result" not in results or "ruleMatches" not in results["result"]:
+                self.logger.error("Unexpected Wiz CLI output format")
+                self.logger.debug(results)
+                exit(1)
+
+            self.add_to_policy_input("wiz", results)
+
+            if results["result"]["ruleMatches"] is None:
+                self.logger.info("No findings found in the IAC scan.")
+            else:
+                findings = {}
+                # Sort the findings by the severity and their rule id
+                for match in results["result"]["ruleMatches"]:
+                    if match["severity"] not in findings:
+                        findings[match["severity"]] = {}
+                    if match["rule"]["id"] not in findings[match["severity"]]:
+                        findings[match["severity"]][match["rule"]["id"]] = {
+                            "rule": match["rule"],
+                            "matches": [],
+                        }
+                    findings[match["severity"]][match["rule"]["id"]]["matches"].append(
+                        match
+                    )
+
+                markdown = "# Wiz IAC Scan Findings\n\n"
+                markdown += f"**Status:** {results['status']['state']} **Verdict:** {results['status']['verdict']}\n"
+                for severity, matches in findings.items():
+                    severity = severity.upper()
+
+                    emoji = None
+                    if severity == "INFORMATIONAL":
+                        emoji = "🟢"
+                    if severity == "LOW":
+                        emoji = "🟡"
+                    elif severity == "MEDIUM":
+                        emoji = "🟡"
+                    elif severity == "HIGH":
+                        emoji = "🟠"
+                    elif severity == "CRITICAL":
+                        emoji = "🔴"
+                    if emoji is not None:
+                        markdown += f"### {emoji} {severity} Findings\n"
+                    else:
+                        markdown += f"### {severity} Findings\n"
+
+                    for rule_id, rule_data in matches.items():
+                        markdown += (
+                            f"#### {rule_data['rule']['name']} (ID: {rule_id})\n"
+                        )
+                        for cycled_rule in rule_data["matches"]:
+                            for match in cycled_rule["matches"]:
+                                markdown += f"- File: {match['fileName']}, Line: {match['lineNumber']}\n"
+                        markdown += "\n"
+                if "reportUrl" in results:
+                    markdown += f"[View Report]({results['reportUrl']})\n"
+                result = self.send_markdown(markdown)
+                if not result:
+                    self.logger.error("Failed to send Wiz CLI output to spacelift")
