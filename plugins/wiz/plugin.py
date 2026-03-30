@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Variable
 
@@ -9,6 +10,9 @@ class WizPlugin(SpaceforgePlugin):
     This adds the `wiz` plugin to your Spacelift account.
     It will scan your infrastructure as code (IaC) for vulnerabilities using Wiz CLI, generating a report of findings and
     adding them to the policy input.
+
+    The scan runs after the plan phase, so it includes resolved Terraform modules and the exported plan file
+    in the directory scan for broader coverage.
 
     ## Usage
 
@@ -23,7 +27,7 @@ class WizPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
-    __version__ = "2.1.0"
+    __version__ = "3.0.0"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -41,7 +45,7 @@ class WizPlugin(SpaceforgePlugin):
         Parameter(
             name="Default Scan Name",
             id="default_scan_name",
-            description="The default name of the scan that shows up in wiz. This setting can be overridden on individual stacks by manually setting the environment variable (DEFAULT_SCAN_NAME) there",
+            description="The name of the scan that shows up in Wiz. If left empty, defaults to '{stack_id}-{run_id}'. This setting can be overridden on individual stacks by manually setting the environment variable (DEFAULT_SCAN_NAME) there",
             default="",
             type="string",
             required=False,
@@ -199,14 +203,77 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
     def __init__(self):
         super().__init__()
 
-    def before_plan(self):
-        self.logger.info("Checking IAC Code")
+    def _get_iac_binary(self):
+        """Detect whether tofu or terraform is available."""
+        for binary in ["tofu", "terraform"]:
+            if shutil.which(binary):
+                return binary
+        return None
+
+    def _export_plan_json(self):
+        """Export the Spacelift plan file to JSON so wizcli can scan it."""
+        plan_file = "spacelift.plan"
+        plan_json = "spacelift_plan.json"
+
+        if not os.path.exists(plan_file):
+            self.logger.warning(
+                f"Plan file '{plan_file}' not found, skipping plan export"
+            )
+            return False
+
+        iac_binary = self._get_iac_binary()
+        if iac_binary is None:
+            self.logger.warning(
+                "Neither tofu nor terraform found in PATH, skipping plan export"
+            )
+            return False
+
+        self.logger.info(f"Exporting plan file using {iac_binary}")
+        return_code, stdout, stderr = self.run_cli(
+            iac_binary, "show", "-no-color", "-json", plan_file, print_output=False
+        )
+
+        if return_code != 0:
+            self.logger.warning(
+                f"Failed to export plan JSON (exit code {return_code}), "
+                "continuing with directory scan only"
+            )
+            return False
+
+        with open(plan_json, "w") as f:
+            f.write("\n".join(stdout))
+
+        self.logger.info(f"Plan exported to {plan_json}")
+        return True
+
+    def _get_scan_name(self):
+        """Get scan name from env var or auto-generate from stack/run IDs."""
+        custom_name = os.environ.get("DEFAULT_SCAN_NAME", "").strip()
+        if custom_name:
+            return custom_name
+
+        stack_id = os.environ.get("TF_VAR_spacelift_stack_id", "")
+        run_id = os.environ.get("TF_VAR_spacelift_run_id", "")
+
+        if stack_id and run_id:
+            return f"{stack_id}-{run_id}"
+
+        if stack_id:
+            return stack_id
+
+        return None
+
+    def after_plan(self):
+        self.logger.info("Scanning IaC after plan")
 
         if os.environ.get("IS_GOVCLOUD", "false").lower() == "true":
             os.environ["WIZ_ENV"] = "gov"
 
         if os.environ.get("IS_FEDRAMP", "false").lower() == "true":
             os.environ["WIZ_ENV"] = "fedramp"
+
+        # Export plan file to JSON so wizcli includes it in the directory scan
+        self._export_plan_json()
 
         args = [
             "wizcli",
@@ -219,10 +286,12 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
             "--no-color",
             "--no-telemetry",
             "--no-browser",
+            "--discovered-resources",
         ]
 
-        if os.environ.get("DEFAULT_SCAN_NAME", "") != "":
-            args.extend(["--name", os.environ.get("DEFAULT_SCAN_NAME")])
+        scan_name = self._get_scan_name()
+        if scan_name:
+            args.extend(["--name", scan_name])
 
         if os.environ.get("DEFAULT_POLICIES", "") != "":
             policies = os.environ.get("DEFAULT_POLICIES").split(",")
