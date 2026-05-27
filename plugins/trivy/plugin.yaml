@@ -299,7 +299,8 @@ contexts:
               trap 'rm -rf "$TMP_DIR"' EXIT
 
               ARCHIVE="$TMP_DIR/archive"
-              curl "$URL" -o "$ARCHIVE" -fL
+              curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 10 \
+                   -fL "$URL" -o "$ARCHIVE"
 
               case "$URL" in
                   *.tar.gz)
@@ -322,7 +323,8 @@ contexts:
               mv "$FOUND_BINARY" "/mnt/workspace/plugins/plugin_binaries/trivy"
               ;;
           *)
-              curl "$URL" -o "/mnt/workspace/plugins/plugin_binaries/trivy" -fL
+              curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 10 \
+                   -fL "$URL" -o "/mnt/workspace/plugins/plugin_binaries/trivy"
               ;;
       esac
 
