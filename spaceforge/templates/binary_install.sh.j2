@@ -27,7 +27,8 @@ case "$URL" in
         trap 'rm -rf "$TMP_DIR"' EXIT
         
         ARCHIVE="$TMP_DIR/archive"
-        curl "$URL" -o "$ARCHIVE" -fL
+        curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 10 \
+             -fL "$URL" -o "$ARCHIVE"
 
         case "$URL" in
             *.tar.gz)
@@ -50,7 +51,8 @@ case "$URL" in
         mv "$FOUND_BINARY" "{{binary_path}}"
         ;;
     *)
-        curl "$URL" -o "{{binary_path}}" -fL
+        curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 10 \
+             -fL "$URL" -o "{{binary_path}}"
         ;;
 esac
 
