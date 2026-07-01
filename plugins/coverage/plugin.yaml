@@ -1,0 +1,448 @@
+name: Module Test Coverage
+version: 1.0.0
+description: |-
+  Gates Terraform/OpenTofu module PRs on test coverage.
+
+  Spacelift module tests instantiate a module through the `project_root` of each test case in
+  `.spacelift/config.yml` and apply it. This plugin measures how much of the module's surface
+  those examples exercise — its input variables and its count/for_each/dynamic/conditional
+  branch points — and denies the run when coverage falls below a threshold (absolute mode) or
+  below the base branch's coverage (ratchet mode).
+
+  The `tfcov` binary discovers the module and its examples from `.spacelift/config.yml`, so a
+  single instance of this plugin can be autoattached to any number of modules. Its report is
+  exposed to policies via `input.third_party_metadata.custom.coverage`.
+author: Spacelift Team
+labels:
+- testing
+- terraform
+- opentofu
+- modules
+parameters:
+- name: Mode
+  description: '''absolute'' fails below the fixed thresholds; ''ratchet'' fails when coverage drops below the base ref.'
+  type: string
+  sensitive: false
+  required: false
+  default: absolute
+  id: mode
+- name: Minimum Variable Coverage
+  description: 'Absolute mode: the minimum percentage of input variables exercised by the examples.'
+  type: number
+  sensitive: false
+  required: false
+  default: 80
+  id: min_variable_coverage
+- name: Minimum Branch Coverage
+  description: 'Absolute mode: the minimum percentage of assessable branch points exercised both ways.'
+  type: number
+  sensitive: false
+  required: false
+  default: 70
+  id: min_branch_coverage
+- name: Fail On
+  description: '''block'' denies the run; ''warn'' only reports.'
+  type: string
+  sensitive: false
+  required: false
+  default: warn
+  id: fail_on
+- name: Base Ref
+  description: 'Ratchet mode: git ref to compare against. Leave empty to auto-detect (the module''s tracked branch, then the previous commit). Requires fetchable git history.'
+  type: string
+  sensitive: false
+  required: false
+  default: ''
+  id: base_ref
+contexts:
+- name_prefix: TFCOV
+  description: Module Test Coverage Plugin
+  env:
+  - key: TFCOV_MODE
+    value_from_parameter: mode
+    sensitive: false
+  - key: TFCOV_MIN_VARIABLE_COVERAGE
+    value_from_parameter: min_variable_coverage
+    sensitive: false
+  - key: TFCOV_MIN_BRANCH_COVERAGE
+    value_from_parameter: min_branch_coverage
+    sensitive: false
+  - key: TFCOV_FAIL_ON
+    value_from_parameter: fail_on
+    sensitive: false
+  - key: TFCOV_BASE_REF
+    value_from_parameter: base_ref
+    sensitive: false
+  mounted_files:
+  - path: /mnt/workspace/plugins/module_test_coverage/plugin.py
+    content: |-
+      import json
+      import os
+
+      from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Variable
+
+      # tfcov lives at https://github.com/spacelift-solutions/tfcov; the framework's
+      # installer downloads and extracts its release archives at runtime. Pinned to a
+      # tag so a tfcov release never silently changes installed plugins — bump
+      # deliberately and regenerate plugin.yaml.
+      _TFCOV_VERSION = "0.0.1"
+      _DIST = (
+          f"https://github.com/spacelift-solutions/tfcov/releases/download/v{_TFCOV_VERSION}"
+      )
+
+
+      class CoveragePlugin(SpaceforgePlugin):
+          """
+          Gates Terraform/OpenTofu module PRs on test coverage.
+
+          Spacelift module tests instantiate a module through the `project_root` of each test case in
+          `.spacelift/config.yml` and apply it. This plugin measures how much of the module's surface
+          those examples exercise — its input variables and its count/for_each/dynamic/conditional
+          branch points — and denies the run when coverage falls below a threshold (absolute mode) or
+          below the base branch's coverage (ratchet mode).
+
+          The `tfcov` binary discovers the module and its examples from `.spacelift/config.yml`, so a
+          single instance of this plugin can be autoattached to any number of modules. Its report is
+          exposed to policies via `input.third_party_metadata.custom.coverage`.
+          """
+
+          __plugin_name__ = "Module Test Coverage"
+          __labels__ = ["testing", "terraform", "opentofu", "modules"]
+          __version__ = "1.0.0"
+          __author__ = "Spacelift Team"
+
+          __binaries__ = [
+              Binary(
+                  name="tfcov",
+                  download_urls={
+                      "amd64": f"{_DIST}/tfcov_linux_amd64.tar.gz",
+                      "arm64": f"{_DIST}/tfcov_linux_arm64.tar.gz",
+                  },
+              )
+          ]
+
+          __parameters__ = [
+              Parameter(
+                  name="Mode",
+                  id="mode",
+                  description="'absolute' fails below the fixed thresholds; 'ratchet' fails when coverage drops below the base ref.",
+                  type="string",
+                  default="absolute",
+                  required=False,
+              ),
+              Parameter(
+                  name="Minimum Variable Coverage",
+                  id="min_variable_coverage",
+                  description="Absolute mode: the minimum percentage of input variables exercised by the examples.",
+                  type="number",
+                  default=80,
+                  required=False,
+              ),
+              Parameter(
+                  name="Minimum Branch Coverage",
+                  id="min_branch_coverage",
+                  description="Absolute mode: the minimum percentage of assessable branch points exercised both ways.",
+                  type="number",
+                  default=70,
+                  required=False,
+              ),
+              Parameter(
+                  name="Fail On",
+                  id="fail_on",
+                  description="'block' denies the run; 'warn' only reports.",
+                  type="string",
+                  default="warn",
+                  required=False,
+              ),
+              Parameter(
+                  name="Base Ref",
+                  id="base_ref",
+                  description="Ratchet mode: git ref to compare against. Leave empty to auto-detect (the module's tracked branch, then the previous commit). Requires fetchable git history.",
+                  type="string",
+                  default="",
+                  required=False,
+              ),
+          ]
+
+          __contexts__ = [
+              Context(
+                  name_prefix="TFCOV",
+                  description="Module Test Coverage Plugin",
+                  env=[
+                      Variable(key="TFCOV_MODE", value_from_parameter="mode"),
+                      Variable(
+                          key="TFCOV_MIN_VARIABLE_COVERAGE",
+                          value_from_parameter="min_variable_coverage",
+                      ),
+                      Variable(
+                          key="TFCOV_MIN_BRANCH_COVERAGE",
+                          value_from_parameter="min_branch_coverage",
+                      ),
+                      Variable(key="TFCOV_FAIL_ON", value_from_parameter="fail_on"),
+                      Variable(key="TFCOV_BASE_REF", value_from_parameter="base_ref"),
+                  ],
+              )
+          ]
+
+          __policies__ = [
+              Policy(
+                  name_prefix="module_coverage",
+                  type="PLAN",
+                  engine_type="REGO_V1",
+                  body="""
+      package spacelift
+
+      sample := true
+
+      cov := input.third_party_metadata.custom.coverage
+
+      deny contains msg if {
+          cov.config.fail_on == "block"
+          some msg in failure
+      }
+
+      warn contains msg if {
+          cov.config.fail_on == "warn"
+          some msg in failure
+      }
+
+      failure contains msg if {
+          cov.config.mode == "absolute"
+          cov.report.variable_coverage < cov.config.min_variable_coverage
+          msg := sprintf("Variable coverage %v%% is below the required %v%%", [cov.report.variable_coverage, cov.config.min_variable_coverage])
+      }
+
+      failure contains msg if {
+          cov.config.mode == "absolute"
+          cov.report.branch_coverage < cov.config.min_branch_coverage
+          msg := sprintf("Branch coverage %v%% is below the required %v%%", [cov.report.branch_coverage, cov.config.min_branch_coverage])
+      }
+
+      failure contains msg if {
+          cov.config.mode == "ratchet"
+          cov.report.variable_coverage < cov.report.base.variable_coverage
+          msg := sprintf("Variable coverage dropped from %v%% to %v%%", [cov.report.base.variable_coverage, cov.report.variable_coverage])
+      }
+
+      failure contains msg if {
+          cov.config.mode == "ratchet"
+          cov.report.branch_coverage < cov.report.base.branch_coverage
+          msg := sprintf("Branch coverage dropped from %v%% to %v%%", [cov.report.base.branch_coverage, cov.report.branch_coverage])
+      }
+      """,
+                  labels=["coverage-plugin"],
+              )
+          ]
+
+          def _resolve_base_ref(self):
+              """Ratchet base: an explicit ref wins; otherwise the module's tracked
+              branch, falling back to the previous commit."""
+              base_ref = os.environ.get("TFCOV_BASE_REF", "").strip()
+              if base_ref:
+                  return base_ref
+              tracked = os.environ.get("TF_VAR_spacelift_stack_branch", "").strip()
+              if tracked:
+                  return f"origin/{tracked}"
+              return "HEAD^"
+
+          def after_init(self):
+              mode = os.environ.get("TFCOV_MODE", "absolute")
+
+              args = [
+                  "tfcov",
+                  "--spacelift",
+                  "--format",
+                  "json",
+                  "--markdown-out",
+                  "tfcov.md",
+              ]
+              if mode == "ratchet":
+                  args += ["--base-ref", self._resolve_base_ref()]
+
+              return_code, stdout, stderr = self.run_cli(*args, print_output=False)
+              if return_code != 0:
+                  for line in stderr:
+                      self.logger.error(line)
+                  exit(1)
+
+              report = json.loads("\n".join(stdout))
+              self._write_policy_inputs(report, mode)
+
+              if os.path.exists("tfcov.md"):
+                  with open("tfcov.md") as f:
+                      self.send_markdown(f.read())
+
+          def _write_policy_inputs(self, report, mode):
+              """Write the coverage policy input where Spacelift will find it.
+
+              Spacelift scans each test case's project_root for *.custom.spacelift.json,
+              but module test runs don't set TF_VAR_spacelift_project_root, so the run
+              wrapper leaves us in the repo root. Every test case's project_root is one
+              of report["examples"], so write the input into each — whichever is the
+              current run's project_root gets picked up."""
+              payload = json.dumps(
+                  {
+                      "report": report,
+                      "config": {
+                          "mode": mode,
+                          "fail_on": os.environ.get("TFCOV_FAIL_ON", "warn"),
+                          "min_variable_coverage": float(
+                              os.environ.get("TFCOV_MIN_VARIABLE_COVERAGE", "80")
+                          ),
+                          "min_branch_coverage": float(
+                              os.environ.get("TFCOV_MIN_BRANCH_COVERAGE", "70")
+                          ),
+                      },
+                  }
+              )
+              module_root = report.get("module_root") or "."
+              targets = report.get("examples") or ["."]
+              for example in targets:
+                  path = os.path.join(module_root, example, "coverage.custom.spacelift.json")
+                  try:
+                      with open(path, "w") as f:
+                          f.write(payload)
+                  except OSError as e:
+                      self.logger.warning(f"could not write policy input to {path}: {e}")
+    sensitive: false
+  - path: /mnt/workspace/plugins/module_test_coverage/binary_install_tfcov.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
+      if command -v tfcov; then
+          echo "tfcov is already installed."
+          return
+      fi
+
+      echo "Installing tfcov..."
+      mkdir -p /mnt/workspace/plugins/plugin_binaries
+
+      ARCH="$(arch)"
+      if [ "$ARCH" = "x86_64" ]; then
+          URL="https://github.com/spacelift-solutions/tfcov/releases/download/v0.0.1/tfcov_linux_amd64.tar.gz"
+      elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
+          URL="https://github.com/spacelift-solutions/tfcov/releases/download/v0.0.1/tfcov_linux_arm64.tar.gz"
+      else
+          echo "Error: Unsupported architecture '$ARCH'"
+          exit 1
+      fi
+
+      case "$URL" in
+          *.tar.gz|*.tar.bz2|*.zip)
+              TMP_DIR=$(mktemp -d)
+              trap 'rm -rf "$TMP_DIR"' EXIT
+
+              ARCHIVE="$TMP_DIR/archive"
+              curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 10 \
+                   -fL "$URL" -o "$ARCHIVE"
+
+              case "$URL" in
+                  *.tar.gz)
+                      tar -xzf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.tar.bz2)
+                      tar -xjf "$ARCHIVE" -C "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+                  *.zip)
+                      unzip -o "$ARCHIVE" -d "$TMP_DIR" || { echo "Error: Failed to extract archive"; exit 1; }
+                      ;;
+              esac
+
+              FOUND_BINARY=$(find "$TMP_DIR" -type f -name "tfcov" | head -n 1)
+              if [ -z "$FOUND_BINARY" ]; then
+                  echo "Error: Could not find binary 'tfcov' in extracted archive"
+                  exit 1
+              fi
+
+              mv "$FOUND_BINARY" "/mnt/workspace/plugins/plugin_binaries/tfcov"
+              ;;
+          *)
+              curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 10 \
+                   -fL "$URL" -o "/mnt/workspace/plugins/plugin_binaries/tfcov"
+              ;;
+      esac
+
+      chmod +x "/mnt/workspace/plugins/plugin_binaries/tfcov"
+    sensitive: false
+  - path: /mnt/workspace/plugins/module_test_coverage/after_init.sh
+    content: |-
+      #!/bin/sh
+
+      set -e
+
+      cd /mnt/workspace/plugins/module_test_coverage
+
+      if [ ! -d "./venv" ]; then
+          python -m venv --system-site-packages ./venv
+      fi
+      . venv/bin/activate
+
+      if ! command -v spaceforge; then
+          pip install spaceforge
+      fi
+
+      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
+          pip install -r requirements.txt
+          touch .spaceforge_installed_requirements
+      fi
+
+      export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
+
+      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      python -m spaceforge run --plugin-file /mnt/workspace/plugins/module_test_coverage/plugin.py after_init
+    sensitive: false
+  hooks:
+    before_init:
+    - mkdir -p /mnt/workspace/plugins/module_test_coverage
+    - chmod +x /mnt/workspace/plugins/module_test_coverage/binary_install_tfcov.sh && /mnt/workspace/plugins/module_test_coverage/binary_install_tfcov.sh
+    after_init:
+    - chmod +x /mnt/workspace/plugins/module_test_coverage/after_init.sh && /mnt/workspace/plugins/module_test_coverage/after_init.sh
+policies:
+- name_prefix: module_coverage
+  type: PLAN
+  body: |-
+    package spacelift
+
+    sample := true
+
+    cov := input.third_party_metadata.custom.coverage
+
+    deny contains msg if {
+        cov.config.fail_on == "block"
+        some msg in failure
+    }
+
+    warn contains msg if {
+        cov.config.fail_on == "warn"
+        some msg in failure
+    }
+
+    failure contains msg if {
+        cov.config.mode == "absolute"
+        cov.report.variable_coverage < cov.config.min_variable_coverage
+        msg := sprintf("Variable coverage %v%% is below the required %v%%", [cov.report.variable_coverage, cov.config.min_variable_coverage])
+    }
+
+    failure contains msg if {
+        cov.config.mode == "absolute"
+        cov.report.branch_coverage < cov.config.min_branch_coverage
+        msg := sprintf("Branch coverage %v%% is below the required %v%%", [cov.report.branch_coverage, cov.config.min_branch_coverage])
+    }
+
+    failure contains msg if {
+        cov.config.mode == "ratchet"
+        cov.report.variable_coverage < cov.report.base.variable_coverage
+        msg := sprintf("Variable coverage dropped from %v%% to %v%%", [cov.report.base.variable_coverage, cov.report.variable_coverage])
+    }
+
+    failure contains msg if {
+        cov.config.mode == "ratchet"
+        cov.report.branch_coverage < cov.report.base.branch_coverage
+        msg := sprintf("Branch coverage dropped from %v%% to %v%%", [cov.report.base.branch_coverage, cov.report.branch_coverage])
+    }
+  engine_type: REGO_V1
+  labels:
+  - coverage-plugin
