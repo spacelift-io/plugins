@@ -411,8 +411,8 @@ class NotAPlugin:
     @patch("os.path.exists")
     def test_get_plugin_contexts_with_requirements(self, mock_exists: Mock) -> None:
         """Test context generation with requirements.txt."""
-        mock_exists.side_effect = (
-            lambda path: path.endswith("requirements.txt") or "plugin.py" in path
+        mock_exists.side_effect = lambda path: (
+            path.endswith("requirements.txt") or "plugin.py" in path
         )
 
         # Mock specific file contents with a custom open function

@@ -7,6 +7,7 @@ import os
 import textwrap
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
+import click
 import yaml
 from jinja2 import Environment, PackageLoader, select_autoescape
 from mergedeep import Strategy, merge  # type: ignore
@@ -460,9 +461,6 @@ class PluginGenerator:
     def generate(self) -> None:
         """Generate the plugin.yaml file."""
         self.write_yaml(self.generate_manifest())
-
-
-import click
 
 
 @click.command(name="generate")

@@ -334,7 +334,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
                     with open(stderr_file, "r") as f:
                         stderr_content = f.read()
                         if stderr_content.strip():
-                            self.logger.warning(f"Tracedown stderr:")
+                            self.logger.warning("Tracedown stderr:")
                             self.logger.warning(stderr_content)
             except Exception as e:
                 self.logger.debug(f"Could not check tracedown stderr: {e}")
