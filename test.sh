@@ -22,18 +22,12 @@ python -m pytest spaceforge/ -v
 echo "Running type checks..."
 python -m mypy spaceforge/
 
-echo "Running pylint checks..."
-PYTHONPATH=. python -m pylint --errors-only spaceforge/ plugins/
-
 if [[ "$CI" == "true" ]]; then
-    echo "Running code formatting checks..."
-    python -m black --check spaceforge/ plugins/
+    echo "Running ruff lint checks..."
+    ruff check spaceforge/ plugins/
 
-    echo "Running isort checks..."
-    python -m isort --check-only spaceforge/ plugins/
-
-    echo "Running autoflake..."
-    python -m autoflake --check ./**/*.py
+    echo "Running ruff format checks..."
+    ruff format --check spaceforge/ plugins/
 
     echo "Ensuring schema is up to date..."
     cd spaceforge
@@ -41,14 +35,11 @@ if [[ "$CI" == "true" ]]; then
     git diff --exit-code schema.json || (echo "Schema has changed, please update it." && exit 1)
     cd -
 else
-    echo "Running code formatting..."
-    python -m black spaceforge/ plugins/
+    echo "Running ruff lint (with fixes)..."
+    ruff check --fix spaceforge/ plugins/
 
-    echo "Running isort..."
-    python -m isort spaceforge/ plugins/
-
-    echo "Running autoflake..."
-    python -m autoflake --in-place ./**/*.py
+    echo "Running ruff format..."
+    ruff format spaceforge/ plugins/
 
     echo "Updating schema"
     cd spaceforge

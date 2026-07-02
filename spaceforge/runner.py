@@ -6,6 +6,8 @@ import importlib.util
 import os
 from typing import Optional
 
+import click
+
 
 class PluginRunner:
     """Runs plugin hook methods."""
@@ -79,9 +81,6 @@ class PluginRunner:
         except Exception as e:
             print(f"[SpaceForge] Error running hook '{hook_name}': {e}")
             raise
-
-
-import click
 
 
 @click.command(name="run")

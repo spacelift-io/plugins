@@ -219,7 +219,6 @@ resource "spacelift_environment_variable" "__this" {
         markdown = []
 
         for stack_id, env in runtime_config.items():
-
             # Get the current tracked sha from the stack
             query = '{ stack(id: "' + stack_id + '") { trackedCommit { hash } } }'
             response = self.query_api(query)
