@@ -27,73 +27,67 @@ The framework uses pydantic dataclasses for all plugin definitions, providing:
 ### Plugin Structure
 
 ```python
-from spaceforge import SpaceforgePlugin, Parameter, Variable, Context, Webhook, Policy, MountedFile
+from spaceforge import (
+    SpaceforgePlugin,
+    Parameter,
+    Variable,
+    Context,
+    Webhook,
+    Policy,
+    MountedFile,
+)
+
 
 class MyPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "my-plugin"
     __version__ = "1.0.0"
     __author__ = "Your Name"
-    
+
     # Parameter definitions using pydantic dataclasses
     __parameters__ = [
         Parameter(
             name="api_key",
             description="API key for authentication",
             required=True,
-            sensitive=True
+            sensitive=True,
         )
     ]
-    
+
     # Context definitions using pydantic dataclasses
     __contexts__ = [
         Context(
             name="main",
             description="Main plugin context",
             env=[
-                Variable(
-                    key="API_KEY",
-                    value_from_parameter="api_key",
-                    sensitive=True
-                )
+                Variable(key="API_KEY", value_from_parameter="api_key", sensitive=True)
             ],
-            hooks={
-                "after_plan": ["echo 'Custom command here'"]
-            },
+            hooks={"after_plan": ["echo 'Custom command here'"]},
             mounted_files=[
-                MountedFile(
-                    path="config.yaml",
-                    content="key: value",
-                    sensitive=False
-                )
-            ]
+                MountedFile(path="config.yaml", content="key: value", sensitive=False)
+            ],
         )
     ]
-    
+
     # Webhook definitions using pydantic dataclasses
     __webhooks__ = [
         Webhook(
             name="my_webhook",
             endpoint="https://example.com/webhook",
-            secrets=[
-                Variable(
-                    key="WEBHOOK_SECRET",
-                    value_from_parameter="api_key"
-                )
-            ]
+            secrets=[Variable(key="WEBHOOK_SECRET", value_from_parameter="api_key")],
         )
     ]
-    
-    # Policy definitions using pydantic dataclasses  
+
+    # Policy definitions using pydantic dataclasses
     __policies__ = [
         Policy(
             name="my_policy",
             type="notification",
             body="package spacelift\n# Policy content here",
-            labels={"type": "security"}
+            labels={"type": "security"},
         )
     ]
-    
+
     def after_plan(self):
         self.logger.info("Running after plan")
         # Your plugin logic here
@@ -174,7 +168,7 @@ __parameters__ = [
         description="Database connection URL",
         required=True,
         sensitive=True,
-        default="postgresql://localhost:5432/mydb"
+        default="postgresql://localhost:5432/mydb",
     )
 ]
 ```
@@ -192,28 +186,16 @@ __contexts__ = [
     Context(
         name="production",
         description="Production environment",
-        labels={
-            "environment": "production"
-        },
+        labels={"environment": "production"},
         env=[
             Variable(
-                key="DATABASE_URL",
-                value_from_parameter="database_url",
-                sensitive=True
+                key="DATABASE_URL", value_from_parameter="database_url", sensitive=True
             )
         ],
-        hooks={
-            "after_plan": [
-                "echo 'Running production validation'"
-            ]
-        },
+        hooks={"after_plan": ["echo 'Running production validation'"]},
         mounted_files=[
-            MountedFile(
-                path="app.conf",
-                content="production config",
-                sensitive=False
-            )
-        ]
+            MountedFile(path="app.conf", content="production config", sensitive=False)
+        ],
     )
 ]
 ```
