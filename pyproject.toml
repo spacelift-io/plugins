@@ -80,7 +80,7 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
-testpaths = ["spaceforge"]
+testpaths = ["spaceforge", "plugins"]
 python_files = ["test_*.py"]
 
 [tool.setuptools_scm]

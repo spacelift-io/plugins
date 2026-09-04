@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-_PLUGIN_PATH = Path(__file__).parents[1] / "plugins" / "wiz" / "plugin.py"
+_PLUGIN_PATH = Path(__file__).with_name("plugin.py")
 _PLUGIN_SPEC = importlib.util.spec_from_file_location("wiz_plugin", _PLUGIN_PATH)
 if _PLUGIN_SPEC is None or _PLUGIN_SPEC.loader is None:
     raise ImportError(f"Could not load Wiz plugin from {_PLUGIN_PATH}")
