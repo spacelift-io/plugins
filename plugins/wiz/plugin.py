@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import threading
 
 from spaceforge import Binary, Context, Parameter, Policy, SpaceforgePlugin, Variable
 
@@ -24,10 +25,12 @@ class WizPlugin(SpaceforgePlugin):
     Samples of these policies are included with the plugin.
     """
 
+    _SCAN_HEARTBEAT_INTERVAL_SECONDS = 60
+
     # Plugin metadata
     __plugin_name__ = "Wiz"
     __labels__ = ["security", "code scanning", "vulnerability"]
-    __version__ = "3.0.0"
+    __version__ = "3.0.1"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
@@ -263,6 +266,27 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
 
         return None
 
+    def _run_scan(self, *args):
+        """Run wizcli while emitting output often enough to keep the launcher alive."""
+        scan_finished = threading.Event()
+
+        def emit_heartbeat():
+            while not scan_finished.wait(self._SCAN_HEARTBEAT_INTERVAL_SECONDS):
+                self.logger.info("Wiz scan is still running...")
+
+        heartbeat_thread = threading.Thread(
+            target=emit_heartbeat,
+            name="wiz-scan-heartbeat",
+            daemon=True,
+        )
+        heartbeat_thread.start()
+
+        try:
+            return self.run_cli(*args, print_output=False)
+        finally:
+            scan_finished.set()
+            heartbeat_thread.join()
+
     def after_plan(self):
         self.logger.info("Scanning IaC after plan")
 
@@ -302,7 +326,7 @@ deny[sprintf("Too many low vulnerabilities (%d)", [num])] {
         if additional_args:
             args.extend(additional_args.split())
 
-        return_code, stdout, stderr = self.run_cli(*args, print_output=False)
+        return_code, stdout, stderr = self._run_scan(*args)
         if (
             os.environ.get("WIZCLI_AUTOFAIL", "false").lower() == "true"
             and return_code != 0
