@@ -17,7 +17,7 @@ echo "Validating plugins..."
 python validate_plugins.py
 
 echo "Running pytests..."
-python -m pytest spaceforge/ -v
+python -m pytest -v
 
 echo "Running type checks..."
 python -m mypy spaceforge/
