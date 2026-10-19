@@ -105,7 +105,7 @@ class EnvironmentManagerPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "Environment Manager"
     __labels__ = ["management", "infrastructure"]
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
     __author__ = "Spacelift Team"
 
     __parameters__ = [

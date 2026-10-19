@@ -1,5 +1,5 @@
 name: OpenTofu Tracing
-version: 2.0.2
+version: 2.0.3
 description: |-
   This plugin enables OpenTelemetry tracing for OpenTofu operations in Spacelift using Tracedown.
 
@@ -145,7 +145,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "OpenTofu Tracing"
           __labels__ = ["opentofu", "observability", "tracing"]
-          __version__ = "2.0.2"
+          __version__ = "2.0.3"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -616,24 +616,29 @@ contexts:
 
       cd /mnt/workspace/plugins/opentofu_tracing
 
-      if [ ! -d "./venv" ]; then
-          python -m venv --system-site-packages ./venv
-      fi
-      . venv/bin/activate
+      venv_dir="$PWD/venv"
+      venv_python="$venv_dir/bin/python"
+      requirements_marker="$venv_dir/.spaceforge_installed_requirements"
 
-      if ! command -v spaceforge; then
-          pip install spaceforge
+      if [ ! -x "$venv_python" ] || [ ! -f "$venv_dir/bin/activate" ] || ! "$venv_python" -c 'import sys' >/dev/null 2>&1; then
+          rm -rf "$venv_dir"
+          python -m venv --copies --system-site-packages "$venv_dir"
+      fi
+      . "$venv_dir/bin/activate"
+
+      if ! "$venv_python" -c 'import spaceforge' >/dev/null 2>&1; then
+          "$venv_python" -m pip install spaceforge
       fi
 
-      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
-          pip install -r requirements.txt
-          touch .spaceforge_installed_requirements
+      if [ -f requirements.txt ] && [ ! -f "$requirements_marker" ]; then
+          "$venv_python" -m pip install -r requirements.txt
+          touch "$requirements_marker"
       fi
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      python -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py after_apply
+      "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py after_apply
     sensitive: false
   - path: /mnt/workspace/plugins/opentofu_tracing/after_plan.sh
     content: |-
@@ -643,24 +648,29 @@ contexts:
 
       cd /mnt/workspace/plugins/opentofu_tracing
 
-      if [ ! -d "./venv" ]; then
-          python -m venv --system-site-packages ./venv
-      fi
-      . venv/bin/activate
+      venv_dir="$PWD/venv"
+      venv_python="$venv_dir/bin/python"
+      requirements_marker="$venv_dir/.spaceforge_installed_requirements"
 
-      if ! command -v spaceforge; then
-          pip install spaceforge
+      if [ ! -x "$venv_python" ] || [ ! -f "$venv_dir/bin/activate" ] || ! "$venv_python" -c 'import sys' >/dev/null 2>&1; then
+          rm -rf "$venv_dir"
+          python -m venv --copies --system-site-packages "$venv_dir"
+      fi
+      . "$venv_dir/bin/activate"
+
+      if ! "$venv_python" -c 'import spaceforge' >/dev/null 2>&1; then
+          "$venv_python" -m pip install spaceforge
       fi
 
-      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
-          pip install -r requirements.txt
-          touch .spaceforge_installed_requirements
+      if [ -f requirements.txt ] && [ ! -f "$requirements_marker" ]; then
+          "$venv_python" -m pip install -r requirements.txt
+          touch "$requirements_marker"
       fi
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      python -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py after_plan
+      "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py after_plan
     sensitive: false
   - path: /mnt/workspace/plugins/opentofu_tracing/before_apply.sh
     content: |-
@@ -670,24 +680,29 @@ contexts:
 
       cd /mnt/workspace/plugins/opentofu_tracing
 
-      if [ ! -d "./venv" ]; then
-          python -m venv --system-site-packages ./venv
-      fi
-      . venv/bin/activate
+      venv_dir="$PWD/venv"
+      venv_python="$venv_dir/bin/python"
+      requirements_marker="$venv_dir/.spaceforge_installed_requirements"
 
-      if ! command -v spaceforge; then
-          pip install spaceforge
+      if [ ! -x "$venv_python" ] || [ ! -f "$venv_dir/bin/activate" ] || ! "$venv_python" -c 'import sys' >/dev/null 2>&1; then
+          rm -rf "$venv_dir"
+          python -m venv --copies --system-site-packages "$venv_dir"
+      fi
+      . "$venv_dir/bin/activate"
+
+      if ! "$venv_python" -c 'import spaceforge' >/dev/null 2>&1; then
+          "$venv_python" -m pip install spaceforge
       fi
 
-      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
-          pip install -r requirements.txt
-          touch .spaceforge_installed_requirements
+      if [ -f requirements.txt ] && [ ! -f "$requirements_marker" ]; then
+          "$venv_python" -m pip install -r requirements.txt
+          touch "$requirements_marker"
       fi
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      python -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py before_apply
+      "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py before_apply
     sensitive: false
   - path: /mnt/workspace/plugins/opentofu_tracing/before_init.sh
     content: |-
@@ -697,24 +712,29 @@ contexts:
 
       cd /mnt/workspace/plugins/opentofu_tracing
 
-      if [ ! -d "./venv" ]; then
-          python -m venv --system-site-packages ./venv
-      fi
-      . venv/bin/activate
+      venv_dir="$PWD/venv"
+      venv_python="$venv_dir/bin/python"
+      requirements_marker="$venv_dir/.spaceforge_installed_requirements"
 
-      if ! command -v spaceforge; then
-          pip install spaceforge
+      if [ ! -x "$venv_python" ] || [ ! -f "$venv_dir/bin/activate" ] || ! "$venv_python" -c 'import sys' >/dev/null 2>&1; then
+          rm -rf "$venv_dir"
+          python -m venv --copies --system-site-packages "$venv_dir"
+      fi
+      . "$venv_dir/bin/activate"
+
+      if ! "$venv_python" -c 'import spaceforge' >/dev/null 2>&1; then
+          "$venv_python" -m pip install spaceforge
       fi
 
-      if [ -f requirements.txt ] && [ ! -f .spaceforge_installed_requirements ]; then
-          pip install -r requirements.txt
-          touch .spaceforge_installed_requirements
+      if [ -f requirements.txt ] && [ ! -f "$requirements_marker" ]; then
+          "$venv_python" -m pip install -r requirements.txt
+          touch "$requirements_marker"
       fi
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
       cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
-      python -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py before_init
+      "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/opentofu_tracing/plugin.py before_init
     sensitive: false
   hooks:
     before_init:

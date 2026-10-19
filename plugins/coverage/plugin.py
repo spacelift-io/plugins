@@ -30,7 +30,7 @@ class CoveragePlugin(SpaceforgePlugin):
 
     __plugin_name__ = "Module Test Coverage"
     __labels__ = ["testing", "terraform", "opentofu", "modules"]
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = "Spacelift Team"
 
     __binaries__ = [

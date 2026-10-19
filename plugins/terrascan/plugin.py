@@ -57,7 +57,7 @@ class TerrascanPlugin(SpaceforgePlugin):
     """
 
     __plugin_name__ = "Terrascan"
-    __version__ = "1.0.4"
+    __version__ = "1.0.5"
     __author__ = "Spacelift"
     __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 

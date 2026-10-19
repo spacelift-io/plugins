@@ -77,7 +77,7 @@ class CheckovPlugin(SpaceforgePlugin):
 
     __plugin_name__ = "Checkov"
     __author__ = "Spacelift"
-    __version__ = "1.0.4"
+    __version__ = "1.0.5"
     __labels__ = ["security", "terraform"]
 
     __parameters__ = [

@@ -50,7 +50,7 @@ class TruffleHogPlugin(SpaceforgePlugin):
 
     __plugin_name__ = "Trufflehog"
     __author__ = "Spacelift"
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
     __labels__ = ["security", "secrets"]
 
     __parameters__ = [
