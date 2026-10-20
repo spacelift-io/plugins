@@ -35,7 +35,7 @@ class AwsSamPlugin(SpaceforgePlugin):
 
     __plugin_name__ = "AWS SAM"
     __author__ = "tetienne"
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __labels__ = ["cloudformation", "sam", "serverless"]
 
     __parameters__ = [

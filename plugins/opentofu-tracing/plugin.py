@@ -47,7 +47,7 @@ class OpenTofuTracingPlugin(SpaceforgePlugin):
     # Plugin metadata
     __plugin_name__ = "OpenTofu Tracing"
     __labels__ = ["opentofu", "observability", "tracing"]
-    __version__ = "2.0.2"
+    __version__ = "2.0.3"
     __author__ = "Spacelift Team"
 
     __binaries__ = [
