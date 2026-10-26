@@ -1,5 +1,5 @@
 name: SSM Parameter Store
-version: 1.0.1
+version: 1.0.2
 description: |-
   # Plugin SSM Parameter Store
 
@@ -148,7 +148,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "SSM Parameter Store"
           __labels__ = ["secrets management", "aws", "ssm", "autoattach"]
-          __version__ = "1.0.1"
+          __version__ = "1.0.2"
           __author__ = "Spacelift Team"
 
           # Plugin parameters
@@ -360,6 +360,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/ssm_parameter_store
 
       venv_dir="$PWD/venv"
@@ -381,7 +385,11 @@ contexts:
           touch "$requirements_marker"
       fi
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/ssm_parameter_store/plugin.py after_run
     sensitive: false
   - path: /mnt/workspace/plugins/ssm_parameter_store/before_apply.sh
@@ -390,6 +398,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/ssm_parameter_store
 
       venv_dir="$PWD/venv"
@@ -411,7 +423,11 @@ contexts:
           touch "$requirements_marker"
       fi
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/ssm_parameter_store/plugin.py before_apply
     sensitive: false
   - path: /mnt/workspace/plugins/ssm_parameter_store/before_destroy.sh
@@ -420,6 +436,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/ssm_parameter_store
 
       venv_dir="$PWD/venv"
@@ -441,7 +461,11 @@ contexts:
           touch "$requirements_marker"
       fi
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/ssm_parameter_store/plugin.py before_destroy
     sensitive: false
   - path: /mnt/workspace/plugins/ssm_parameter_store/before_init.sh
@@ -450,6 +474,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/ssm_parameter_store
 
       venv_dir="$PWD/venv"
@@ -471,7 +499,11 @@ contexts:
           touch "$requirements_marker"
       fi
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/ssm_parameter_store/plugin.py before_init
     sensitive: false
   - path: /mnt/workspace/plugins/ssm_parameter_store/before_plan.sh
@@ -480,6 +512,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/ssm_parameter_store
 
       venv_dir="$PWD/venv"
@@ -501,7 +537,11 @@ contexts:
           touch "$requirements_marker"
       fi
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/ssm_parameter_store/plugin.py before_plan
     sensitive: false
   hooks:
