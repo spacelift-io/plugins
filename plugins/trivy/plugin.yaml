@@ -1,5 +1,5 @@
 name: Trivy
-version: 1.0.6
+version: 1.0.7
 description: |-
   The Trivy plugin scans your Terraform/OpenTofu configurations for security misconfigurations
   and generates a detailed report with findings categorized by severity.
@@ -74,7 +74,7 @@ contexts:
           __author__ = "Spacelift"
           __labels__ = ["security", "terraform"]
           __plugin_name__ = "Trivy"
-          __version__ = "1.0.6"
+          __version__ = "1.0.7"
 
           __binaries__ = [
               Binary(
@@ -336,6 +336,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/trivy
 
       venv_dir="$PWD/venv"
@@ -359,7 +363,11 @@ contexts:
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/trivy/plugin.py after_plan
     sensitive: false
   hooks:

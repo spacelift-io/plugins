@@ -1,5 +1,5 @@
 name: Sops
-version: 1.3.1
+version: 1.3.2
 description: |-
   This adds the `SOPS` plugin to your Spacelift account.
   It will decrypt an arbitrary number of files based on config you set.
@@ -124,7 +124,7 @@ contexts:
           # Plugin metadata
           __plugin_name__ = "Sops"
           __labels__ = ["secrets management", "encryption"]
-          __version__ = "1.3.1"
+          __version__ = "1.3.2"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -268,6 +268,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/sops
 
       venv_dir="$PWD/venv"
@@ -291,7 +295,11 @@ contexts:
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/sops/plugin.py before_init
     sensitive: false
   hooks:

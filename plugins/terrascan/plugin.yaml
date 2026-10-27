@@ -1,5 +1,5 @@
 name: Terrascan
-version: 1.0.5
+version: 1.0.6
 description: |-
   The Terrascan plugin scans your Infrastructure as Code for security and compliance
   violations and generates a detailed report with findings categorized by severity.
@@ -132,7 +132,7 @@ contexts:
           """
 
           __plugin_name__ = "Terrascan"
-          __version__ = "1.0.5"
+          __version__ = "1.0.6"
           __author__ = "Spacelift"
           __labels__ = ["security", "terraform", "cloudformation", "kubernetes"]
 
@@ -427,6 +427,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/terrascan
 
       venv_dir="$PWD/venv"
@@ -450,7 +454,11 @@ contexts:
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/terrascan/plugin.py after_plan
     sensitive: false
   hooks:

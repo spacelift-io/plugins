@@ -1,5 +1,5 @@
 name: Module Test Coverage
-version: 1.0.1
+version: 1.0.2
 description: |-
   Gates Terraform/OpenTofu module PRs on test coverage.
 
@@ -108,7 +108,7 @@ contexts:
 
           __plugin_name__ = "Module Test Coverage"
           __labels__ = ["testing", "terraform", "opentofu", "modules"]
-          __version__ = "1.0.1"
+          __version__ = "1.0.2"
           __author__ = "Spacelift Team"
 
           __binaries__ = [
@@ -373,6 +373,10 @@ contexts:
 
       set -e
 
+      # Hooks start in the project root. Module test runs leave
+      # TF_VAR_spacelift_project_root empty, so remember where we started.
+      hook_dir="$PWD"
+
       cd /mnt/workspace/plugins/module_test_coverage
 
       venv_dir="$PWD/venv"
@@ -396,7 +400,11 @@ contexts:
 
       export PATH="/mnt/workspace/plugins/plugin_binaries:$PATH"
 
-      cd /mnt/workspace/source/$TF_VAR_spacelift_project_root
+      if [ -n "$TF_VAR_spacelift_project_root" ]; then
+          cd "/mnt/workspace/source/$TF_VAR_spacelift_project_root"
+      else
+          cd "$hook_dir"
+      fi
       "$venv_python" -m spaceforge run --plugin-file /mnt/workspace/plugins/module_test_coverage/plugin.py after_init
     sensitive: false
   hooks:
